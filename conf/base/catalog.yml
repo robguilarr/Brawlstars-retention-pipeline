@@ -1,0 +1,17 @@
+# Here you can define all your data sets by using simple YAML syntax.
+#
+# Documentation for this file format can be found in "The Data Catalog"
+# Link: https://kedro.readthedocs.io/en/stable/data/data_catalog.html
+# Schema mapping: https://raw.githubusercontent.com/kedro-org/kedro/main/static/jsonschema/kedro-catalog-0.18.json
+
+player_tags:
+  type: text.TextDataSet
+  filepath: data/01_player_tags/tags.txt
+
+raw_battlelogs@Pandas:
+  type: pandas.CSVDataSet
+  filepath: data/02_raw_battlelogs/raw_battlelogs.csv
+  load_args:
+    sep: ","
+  save_args:
+    index: False
