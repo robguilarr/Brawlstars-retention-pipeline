@@ -5,6 +5,10 @@ generated using Kedro 0.18.4
 # General dependencies
 import pandas as pd
 import brawlstats
+# Parameters definitions
+from typing import Any, Dict, Tuple
+
+import pyspark.sql
 # To load the configuration (https://kedro.readthedocs.io/en/stable/kedro_project_setup/configuration.html#credentials)
 from kedro.config import ConfigLoader
 from kedro.framework.project import settings
@@ -16,6 +20,11 @@ import logging
 log = logging.getLogger(__name__)
 # Async processes
 import asyncio
+# Spark SQL API
+from pyspark.sql import SparkSession
+from pyspark.sql import DataFrame
+import pyspark.sql.types as T
+
 
 def battlelogs_request(player_tags: str) -> pd.DataFrame:
     '''
@@ -79,6 +88,9 @@ def battlelogs_request(player_tags: str) -> pd.DataFrame:
     # Run the events-loop
     battlelogs_data = asyncio.run(spawn_request(player_tags[:20]))
 
+    # Replace dots in column names
+    battlelogs_data.columns = [col_name.replace('.','_') for col_name in battlelogs_data.columns]
+
     # Validate concurrency didn't affect the data request
     try:
         assert not battlelogs_data.empty
@@ -86,3 +98,20 @@ def battlelogs_request(player_tags: str) -> pd.DataFrame:
         log.info("No Battlelogs were extracted. Please check your Client Connection")
 
     return battlelogs_data
+
+
+def battlelogs_preprocess(raw_battlelogs: pd.DataFrame,
+                          parameters: Dict[str, Any]
+) -> pyspark.sql.DataFrame:
+
+    # Create Spark dataframe based on pandas parquet
+    spark = SparkSession.builder.getOrCreate()
+
+    # Parse DDL Schema format
+    #ddl_schema = T._parse_datatype_string(parameters['raw_battlelogs_schema'])
+
+    master_event_data = spark.createDataFrame(data = raw_battlelogs, schema = parameters['raw_battlelogs_schema'][0]) #
+    print(master_event_data.show(n=5))
+    print(master_event_data.printSchema())
+
+    return master_event_data

@@ -2,9 +2,9 @@
 from the Kedro defaults. For further information, including these default values, see
 https://kedro.readthedocs.io/en/stable/kedro_project_setup/settings.html."""
 
-# Instantiated project hooks.
-# from brawlstars_etl.hooks import ProjectHooks
-# HOOKS = (ProjectHooks(),)
+# Instantiated project hooks. Hooks are defined as classes inside hooks.py
+from brawlstars_etl.hooks import SparkHooks
+HOOKS = (SparkHooks(),)
 
 # Installed plugins for which to disable hook auto-registration.
 # DISABLE_HOOKS_FOR_PLUGINS = ("kedro-viz",)

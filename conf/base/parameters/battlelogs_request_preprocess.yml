@@ -3,3 +3,27 @@
 #
 # Documentation for this file format can be found in "Parameters"
 # Link: https://kedro.readthedocs.io/en/0.18.4/kedro_project_setup/configuration.html#parameters
+
+# ----- Parameters for preprocessing ----
+
+raw_battlelogs_schema:
+  - "battleTime STRING, 
+    event_id INT, 
+    event_mode STRING,
+    event_map STRING,
+    battle_mode STRING,
+    battle_type STRING,
+    battle_result STRING,
+    battle_duration FLOAT,
+    battle_trophyChange FLOAT,
+    battle_starPlayer_tag STRING,
+    battle_starPlayer_name STRING,
+    battle_starPlayer_brawler_id FLOAT,
+    battle_starPlayer_brawler_name STRING,
+    battle_starPlayer_brawler_power FLOAT,
+    battle_starPlayer_brawler_trophies FLOAT,
+    battle_teams ARRAY<MAP<STRING, STRING>>,
+    battle_rank FLOAT,
+    battle_players STRING,
+    player_id STRING,
+    battle_starPlayer FLOAT"
