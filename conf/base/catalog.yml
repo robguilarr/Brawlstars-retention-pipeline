@@ -10,12 +10,12 @@ player_tags:
   filepath: data/01_player_tags/tags.txt
 
 raw_battlelogs@Pandas:
-  type: pandas.ParquetDataSet
-  filepath: data/02_raw_battlelogs/raw_battlelogs.parquet
+  type: pandas.CSVDataSet
+  filepath: data/02_raw_battlelogs/raw_battlelogs.csv
   load_args:
-    engine: pyarrow
+    sep: ","
   save_args:
-    engine: pyarrow
+    index: False
 
 raw_players_info@Pandas:
   type: pandas.CSVDataSet

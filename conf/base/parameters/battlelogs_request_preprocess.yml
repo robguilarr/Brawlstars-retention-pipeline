@@ -8,22 +8,26 @@
 
 raw_battlelogs_schema:
   - "battleTime STRING, 
-    event_id INT, 
+    event_id BIGINT, 
     event_mode STRING,
     event_map STRING,
     battle_mode STRING,
     battle_type STRING,
     battle_result STRING,
-    battle_duration FLOAT,
-    battle_trophyChange FLOAT,
+    battle_duration DOUBLE,
+    battle_trophyChange DOUBLE,
     battle_starPlayer_tag STRING,
     battle_starPlayer_name STRING,
-    battle_starPlayer_brawler_id FLOAT,
+    battle_starPlayer_brawler_id DOUBLE,
     battle_starPlayer_brawler_name STRING,
-    battle_starPlayer_brawler_power FLOAT,
-    battle_starPlayer_brawler_trophies FLOAT,
-    battle_teams ARRAY<MAP<STRING, STRING>>,
-    battle_rank FLOAT,
+    battle_starPlayer_brawler_power DOUBLE,
+    battle_starPlayer_brawler_trophies DOUBLE,
+    battle_teams STRING,
+    battle_rank DOUBLE,
     battle_players STRING,
     player_id STRING,
-    battle_starPlayer FLOAT"
+    battle_starPlayer DOUBLE"
+
+cohort_time_range:
+  - ("2019-10-01", "2022-10-10")
+  - ("2022-10-11", "2023-10-10")

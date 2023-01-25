@@ -7,6 +7,8 @@ import pandas as pd
 import brawlstats
 # Parameters definitions
 from typing import Any, Dict, Tuple
+from ast import literal_eval
+from functools import reduce
 
 import pyspark.sql
 # To load the configuration (https://kedro.readthedocs.io/en/stable/kedro_project_setup/configuration.html#credentials)
@@ -23,7 +25,7 @@ import asyncio
 # Spark SQL API
 from pyspark.sql import SparkSession
 from pyspark.sql import DataFrame
-import pyspark.sql.types as T
+import pyspark.sql.functions as f
 
 
 def battlelogs_request(player_tags: str) -> pd.DataFrame:
@@ -100,18 +102,41 @@ def battlelogs_request(player_tags: str) -> pd.DataFrame:
     return battlelogs_data
 
 
-def battlelogs_preprocess(raw_battlelogs: pd.DataFrame,
+def battlelogs_filter(raw_battlelogs: pd.DataFrame,
                           parameters: Dict[str, Any]
 ) -> pyspark.sql.DataFrame:
 
     # Create Spark dataframe based on pandas parquet
     spark = SparkSession.builder.getOrCreate()
 
-    # Parse DDL Schema format
-    #ddl_schema = T._parse_datatype_string(parameters['raw_battlelogs_schema'])
+    # Ingest battlelogs data and validate against DDL schema
+    try:
+        battlelogs_raw = spark.createDataFrame(data = raw_battlelogs,
+                                                  schema = parameters['raw_battlelogs_schema'][0])
+    except TypeError:
+        log.warning('Type error on the DDL schema for the battlelogs,'
+                    'check "raw_battlelogs_schema" on the node parameters')
+        raise
 
-    master_event_data = spark.createDataFrame(data = raw_battlelogs, schema = parameters['raw_battlelogs_schema'][0]) #
-    print(master_event_data.show(n=5))
-    print(master_event_data.printSchema())
+    # Filter date based on timestamp, separated cohort can be extracted to exclude specific dates
+    if parameters['cohort_time_range']:
+        if 'battleTime' not in battlelogs_raw.columns:
+            raise ValueError('Check dataframe contains "battleTime" column')
+        # List to allocate DFs
+        cohort_selection = []
+        # Classify sample cohort
+        cohort_num = 1
+        # Loop over each on of the time ranges to subset based on parameters
+        for date_range in parameters['cohort_time_range']:
+            cohort_range = battlelogs_raw.filter(
+                (f.col('battleTime') > literal_eval(date_range)[0])
+                & (f.col('battleTime') > literal_eval(date_range)[1])
+            )
+            cohort_range = cohort_range.withColumn('cohort', cohort_num)
+            cohort_num += 1
+            cohort_selection.append(cohort_range)
+        # Reduce all dataframe to overwrite original
+        battlelogs_raw = reduce(DataFrame.unionAll, cohort_selection)
 
-    return master_event_data
+
+    return battlelogs_raw

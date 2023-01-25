@@ -4,7 +4,7 @@ generated using Kedro 0.18.4
 """
 from kedro.pipeline import Pipeline, node, pipeline
 from .nodes import battlelogs_request
-from .nodes import battlelogs_preprocess
+from .nodes import battlelogs_filter
 
 def create_pipeline(**kwargs) -> Pipeline:
     return pipeline(
@@ -16,10 +16,10 @@ def create_pipeline(**kwargs) -> Pipeline:
                 name="battlelogs_request_node"
             ),
             node(
-                func=battlelogs_preprocess,
+                func=battlelogs_filter,
                 inputs=['raw_battlelogs@Pandas','parameters'],
                 outputs='master_event_data@Spark',
-                name='battlelogs_preprocess_node'
+                name='battlelogs_filter_node'
             )
         ],
         namespace= 'battlelogs_request_and_preprocess',
