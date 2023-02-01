@@ -3,8 +3,7 @@ This is a boilerplate pipeline 'battlelogs_request_preprocess'
 generated using Kedro 0.18.4
 """
 from kedro.pipeline import Pipeline, node, pipeline
-from .nodes import battlelogs_request
-from .nodes import battlelogs_filter
+from .nodes import battlelogs_request, battlelogs_filter, battlelogs_deconstructor
 
 def create_pipeline(**kwargs) -> Pipeline:
     return pipeline(
@@ -18,8 +17,14 @@ def create_pipeline(**kwargs) -> Pipeline:
             node(
                 func=battlelogs_filter,
                 inputs=['raw_battlelogs@Pandas','parameters'],
-                outputs='master_event_data@Spark',
+                outputs='battlelogs_filtered@Spark',
                 name='battlelogs_filter_node'
+            ),
+            node(
+                func=battlelogs_deconstructor,
+                inputs='battlelogs_filtered@Spark',
+                outputs=,
+                name=
             )
         ],
         namespace= 'battlelogs_request_and_preprocess',

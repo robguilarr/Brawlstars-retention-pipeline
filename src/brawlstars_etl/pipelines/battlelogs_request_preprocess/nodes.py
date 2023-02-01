@@ -111,7 +111,7 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
 
     # Ingest battlelogs data and validate against DDL schema
     try:
-        battlelogs_raw = spark.createDataFrame(data = raw_battlelogs,
+        battlelogs_filtered = spark.createDataFrame(data = raw_battlelogs,
                                                   schema = parameters['raw_battlelogs_schema'][0])
     except TypeError:
         log.warning('Type error on the DDL schema for the battlelogs,'
@@ -120,7 +120,7 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
 
     # Filter date based on timestamp, separated cohort can be extracted to exclude specific dates
     if parameters['cohort_time_range']:
-        if 'battleTime' not in battlelogs_raw.columns:
+        if 'battleTime' not in battlelogs_filtered.columns:
             raise ValueError('Check dataframe contains "battleTime" column')
         # List to allocate DFs
         cohort_selection = []
@@ -128,15 +128,19 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
         cohort_num = 1
         # Loop over each on of the time ranges to subset based on parameters
         for date_range in parameters['cohort_time_range']:
-            cohort_range = battlelogs_raw.filter(
+            cohort_range = battlelogs_filtered.filter(
                 (f.col('battleTime') > literal_eval(date_range)[0])
                 & (f.col('battleTime') > literal_eval(date_range)[1])
             )
-            cohort_range = cohort_range.withColumn('cohort', cohort_num)
+            cohort_range = cohort_range.withColumn('cohort', f.lit(cohort_num))
             cohort_num += 1
             cohort_selection.append(cohort_range)
         # Reduce all dataframe to overwrite original
-        battlelogs_raw = reduce(DataFrame.unionAll, cohort_selection)
+        battlelogs_filtered = reduce(DataFrame.unionAll, cohort_selection)
 
+    return battlelogs_filtered
 
-    return battlelogs_raw
+def battlelogs_deconstructor():
+    data1 = pd.DataFrame()
+    data2 = pd.DataFrame()
+    return 'a'
