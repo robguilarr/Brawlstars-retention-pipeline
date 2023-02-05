@@ -83,27 +83,27 @@ def battlelogs_request(player_tags: str) -> pd.DataFrame:
         # Future Object: List of battlelogs as Dataframes
         battlelogs_data_list = await asyncio.gather(*requests_tasks)
         # When all tasks all executed, concat all dataframes into one
-        battlelogs_data = pd.concat(battlelogs_data_list, ignore_index=True)
+        raw_battlelogs = pd.concat(battlelogs_data_list, ignore_index=True)
         log.info(f"Battlelogs request process Finished in {time.time() - start} seconds")
-        return battlelogs_data
+        return raw_battlelogs
 
     # Run the events-loop
-    battlelogs_data = asyncio.run(spawn_request(player_tags[:20]))
+    raw_battlelogs = asyncio.run(spawn_request(player_tags[:20]))
 
     # Replace dots in column names
-    battlelogs_data.columns = [col_name.replace('.','_') for col_name in battlelogs_data.columns]
+    raw_battlelogs.columns = [col_name.replace('.','_') for col_name in raw_battlelogs.columns]
 
     # Validate concurrency didn't affect the data request
     try:
-        assert not battlelogs_data.empty
+        assert not raw_battlelogs.empty
     except AssertionError:
         log.info("No Battlelogs were extracted. Please check your Client Connection")
 
-    return battlelogs_data
+    return raw_battlelogs
 
 
 def battlelogs_filter(raw_battlelogs: pd.DataFrame,
-                          parameters: Dict[str, Any]
+                          parameters: Dict[list, list]
 ) -> pyspark.sql.DataFrame:
 
     # Create Spark dataframe based on pandas parquet
@@ -140,7 +140,8 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
 
     return battlelogs_filtered
 
-def battlelogs_deconstructor():
-    data1 = pd.DataFrame()
-    data2 = pd.DataFrame()
-    return 'a'
+def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame
+) -> (pyspark.sql.DataFrame, pyspark.sql.DataFrame):
+    events_showdown = battlelogs_filtered.coalesce(1)
+    events_special = battlelogs_filtered.coalesce(1)
+    return events_showdown, events_special

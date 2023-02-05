@@ -1,33 +1,13 @@
 # Here you can define all your data sets by using simple YAML syntax.
-#
+
 # Documentation for this file format can be found in "The Data Catalog"
 # Link: https://kedro.readthedocs.io/en/stable/data/data_catalog.html
 # Schema mapping: https://raw.githubusercontent.com/kedro-org/kedro/main/static/jsonschema/kedro-catalog-0.18.json
 # Dataset groups: https://github.com/kedro-org/kedro/tree/develop/kedro/extras/datasets
+# @ Symbols added for potential transcoding https://kedro.readthedocs.io/en/stable/data/data_catalog.html#transcode-datasets
 
-player_tags:
-  type: text.TextDataSet
-  filepath: data/01_player_tags/tags.txt
-
-raw_battlelogs@Pandas:
-  type: pandas.CSVDataSet
-  filepath: data/02_raw_battlelogs/raw_battlelogs.csv
-  load_args:
-    sep: ","
-  save_args:
-    index: False
-
-raw_players_info@Pandas:
-  type: pandas.CSVDataSet
-  filepath: data/03_raw_metadata/raw_players_info.csv
-  load_args:
-    sep: ","
-  save_args:
-    index: False
-
-master_event_data@Spark:
+_pyspark: &pyspark
   type: spark.SparkDataSet
-  filepath: data/04_enriched_data/master_event_data.parquet
   file_format: parquet
   load_args:
     header: true
@@ -36,3 +16,44 @@ master_event_data@Spark:
     sep: ','
     header: True
 
+_pandas: &pandas
+  type: pandas.CSVDataSet
+  load_args:
+    sep: ","
+  save_args:
+    index: False
+
+player_tags:
+  type: text.TextDataSet
+  filepath: data/01_player_tags/tags.txt
+
+raw_battlelogs_data@pandas:
+  <<: *pandas
+  filepath: data/02_raw_battlelogs/raw_battlelogs.csv
+
+battlelogs_filtered_data@pyspark:
+  <<: *pyspark
+  filepath: data/02_raw_battlelogs/battlelogs_filtered.parquet
+
+raw_players_info_data:
+  <<: *pandas
+  type: pandas.CSVDataSet
+  filepath: data/03_raw_metadata/raw_players_info.csv
+
+events_showdown_data@pyspark:
+  <<: *pyspark
+  filepath: data/04_enriched_data/events_showdown_data.parquet
+
+events_showdown_data@pandas:
+  <<: *pandas
+  type: pandas.CSVDataSet
+  filepath: data/04_enriched_data/events_showdown_data.csv
+
+events_special_data@pyspark:
+  <<: *pyspark
+  filepath: data/04_enriched_data/events_special_data.parquet
+
+events_special_data@pandas:
+  <<: *pandas
+  type: pandas.CSVDataSet
+  filepath: data/04_enriched_data/events_special_data.csv

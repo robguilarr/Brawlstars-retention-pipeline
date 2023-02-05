@@ -6,28 +6,27 @@ from kedro.pipeline import Pipeline, node, pipeline
 from .nodes import battlelogs_request, battlelogs_filter, battlelogs_deconstructor
 
 def create_pipeline(**kwargs) -> Pipeline:
-    return pipeline(
+    pipeline_instance = pipeline(
         [
             node(
                 func=battlelogs_request,
-                inputs="player_tags",
-                outputs="raw_battlelogs@Pandas",
+                inputs='player_tags',
+                outputs='raw_battlelogs_data@pandas',
                 name="battlelogs_request_node"
             ),
             node(
                 func=battlelogs_filter,
-                inputs=['raw_battlelogs@Pandas','parameters'],
-                outputs='battlelogs_filtered@Spark',
+                inputs=['raw_battlelogs_data@pandas','parameters'],
+                outputs='battlelogs_filtered_data@pyspark',
                 name='battlelogs_filter_node'
             ),
             node(
                 func=battlelogs_deconstructor,
-                inputs='battlelogs_filtered@Spark',
-                outputs=,
-                name=
+                inputs='battlelogs_filtered_data@pyspark',
+                outputs= ['events_showdown_data@pyspark','events_special_data@pyspark'],
+                name='battlelogs_deconstructor_node'
             )
-        ],
-        namespace= 'battlelogs_request_and_preprocess',
-        inputs= ['player_tags'],
-        outputs= 'raw_battlelogs@Pandas'
+        ]
     )
+
+    return pipeline_instance

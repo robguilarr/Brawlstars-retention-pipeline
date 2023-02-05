@@ -14,8 +14,7 @@ raw_battlelogs_schema:
     battle_mode STRING,
     battle_type STRING,
     battle_result STRING,
-    battle_duration DOUBLE,
-    battle_trophyChange DOUBLE,
+    battle_duration BIGINT,
     battle_starPlayer_tag STRING,
     battle_starPlayer_name STRING,
     battle_starPlayer_brawler_id DOUBLE,
@@ -23,10 +22,9 @@ raw_battlelogs_schema:
     battle_starPlayer_brawler_power DOUBLE,
     battle_starPlayer_brawler_trophies DOUBLE,
     battle_teams STRING,
-    battle_rank DOUBLE,
-    battle_players STRING,
+    battle_trophyChange DOUBLE,
     player_id STRING,
-    battle_starPlayer DOUBLE"
+    battle_players STRING"
 
 cohort_time_range:
   - ("2019-10-01", "2022-10-10")

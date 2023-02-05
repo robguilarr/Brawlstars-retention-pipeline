@@ -1,5 +1,6 @@
 # You can define spark specific configuration here.
-spark.driver.maxResultSize: 3g
+spark.driver.maxResultSize: 5g
+spark.driver.memory: 5g
 spark.hadoop.fs.s3a.impl: org.apache.hadoop.fs.s3a.S3AFileSystem
 spark.sql.execution.arrow.pyspark.enabled: true
 spark.history.ui.port: 18080

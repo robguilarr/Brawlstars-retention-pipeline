@@ -18,6 +18,6 @@ def register_pipelines() -> Dict[str, Pipeline]:
     mrp = metadata_request_preprocess.create_pipeline()
 
 
-    return {"__default__": brp, # + mrp
+    return {"__default__": brp + mrp,
             "battlelogs_request_preprocess": brp,
             "metadata_request_preprocess": mrp}
