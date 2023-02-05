@@ -5,6 +5,7 @@ generated using Kedro 0.18.4
 # General dependencies
 import pandas as pd
 import brawlstats
+import datetime as dt
 # Parameters definitions
 from typing import Any, Dict, Tuple
 from ast import literal_eval
@@ -28,12 +29,12 @@ from pyspark.sql import DataFrame
 import pyspark.sql.functions as f
 
 
-def battlelogs_request(player_tags: str) -> pd.DataFrame:
+def battlelogs_request(player_tags_txt: str) -> pd.DataFrame:
     '''
     Extracts Battlelogs from Brawlstars API by executing an Async Event Loop over a list of futures objects. These are
     made of task objects built of Async threads due blocking call limitations of api_request sub_module.
     Args:
-        player_tags: PLayer tag list
+        player_tags_txt: PLayer tag list
     Returns:
         All players battlelogs concatenated into a structured Dataframe
     '''
@@ -49,7 +50,7 @@ def battlelogs_request(player_tags: str) -> pd.DataFrame:
     client = brawlstats.Client(token=API_KEY)
 
     # Create list of player tags, from catalog
-    player_tags = player_tags.split(',')
+    player_tags_txt = player_tags_txt.split(',')
 
     def api_request(tag: str) -> pd.DataFrame:
         '''Request battlelogs from the Brawl Stars API and give a strutured format'''
@@ -74,12 +75,12 @@ def battlelogs_request(player_tags: str) -> pd.DataFrame:
         '''
         return await asyncio.to_thread(api_request, tag)
 
-    async def spawn_request(player_tags: list) -> pd.DataFrame:
+    async def spawn_request(player_tags_txt: list) -> pd.DataFrame:
         '''Use gathering to request battlelogs as async tasks objects, made of coroutines'''
         start = time.time()
         log.info(f"Battlelogs request process started")
         # Comprehensive list of coroutines as Task Objects, whom will be already scheduled its execution
-        requests_tasks = [asyncio.create_task(api_request_async(tag)) for tag in player_tags]
+        requests_tasks = [asyncio.create_task(api_request_async(tag)) for tag in player_tags_txt]
         # Future Object: List of battlelogs as Dataframes
         battlelogs_data_list = await asyncio.gather(*requests_tasks)
         # When all tasks all executed, concat all dataframes into one
@@ -88,7 +89,7 @@ def battlelogs_request(player_tags: str) -> pd.DataFrame:
         return raw_battlelogs
 
     # Run the events-loop
-    raw_battlelogs = asyncio.run(spawn_request(player_tags[:20]))
+    raw_battlelogs = asyncio.run(spawn_request(player_tags_txt[:20]))
 
     # Replace dots in column names
     raw_battlelogs.columns = [col_name.replace('.','_') for col_name in raw_battlelogs.columns]
@@ -105,14 +106,25 @@ def battlelogs_request(player_tags: str) -> pd.DataFrame:
 def battlelogs_filter(raw_battlelogs: pd.DataFrame,
                           parameters: Dict[list, list]
 ) -> pyspark.sql.DataFrame:
-
+    '''
+    Filter a variety of players into cohorts, also known as samples for a pre-defined study. To take advantage of
+    its use, verify that at least one time range is defined within the battlelogs_request_preprocess pipeline
+    parameters.
+    This node also applies a user-defined function that transforms the raw date and time (ISO 8601) from the Brawl
+    Stars API, then transforms it to java.util.GregorianCalendar (low-level date format) for Spark to use. process.
+    Args:
+        raw_battlelogs: All players battlelogs concatenated into a structured Dataframe
+        parameters[cohort_time_range]: Time range(s) to subset
+    Returns:
+        Filtered Pyspark DataFrame containing only cohorts required for the study
+    '''
     # Create Spark dataframe based on pandas parquet
     spark = SparkSession.builder.getOrCreate()
 
     # Ingest battlelogs data and validate against DDL schema
     try:
-        battlelogs_filtered = spark.createDataFrame(data = raw_battlelogs,
-                                                  schema = parameters['raw_battlelogs_schema'][0])
+        battlelogs_filtered = spark.createDataFrame(data= raw_battlelogs,
+                                                  schema= parameters['raw_battlelogs_schema'][0])
     except TypeError:
         log.warning('Type error on the DDL schema for the battlelogs,'
                     'check "raw_battlelogs_schema" on the node parameters')
@@ -122,21 +134,41 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
     if parameters['cohort_time_range']:
         if 'battleTime' not in battlelogs_filtered.columns:
             raise ValueError('Check dataframe contains "battleTime" column')
+        else:
+            # Convert string to date format, original timestamps are in ISO 8601 format ex: 20230204T161026.000Z
+            convertDT = f.udf(lambda string: dt.datetime.strptime(string, "%Y%m%dT%H%M%S.%fZ").date())
+            battlelogs_filtered = battlelogs_filtered.withColumn('battleTime',
+                                                                 convertDT('battleTime'))
+            # Transform java.util.GregorianCalendar low level date format to Pyspark
+            pattern = r'(?:.*)YEAR=(\d+).+?MONTH=(\d+).+?DAY_OF_MONTH=(\d+).+?HOUR=(\d+).+?MINUTE=(\d+).+?SECOND=(\d+).+'
+            battlelogs_filtered = (battlelogs_filtered.withColumn('battleTime',
+                                                                 f.regexp_replace('battleTime',
+                                                                                  pattern, '$1-$2-$3 $4:$5:$6')
+                                                                  .cast('timestamp')
+                                                                  )
+                                   .withColumn('battleTime', f.date_format('battleTime', format='yyyy-MM-dd'))
+                                   )
+
         # List to allocate DFs
         cohort_selection = []
         # Classify sample cohort
         cohort_num = 1
-        # Loop over each on of the time ranges to subset based on parameters
+        # Loop over each one of the parameters to subset based on time ranges
         for date_range in parameters['cohort_time_range']:
             cohort_range = battlelogs_filtered.filter(
                 (f.col('battleTime') > literal_eval(date_range)[0])
-                & (f.col('battleTime') > literal_eval(date_range)[1])
+                & (f.col('battleTime') < literal_eval(date_range)[1])
             )
             cohort_range = cohort_range.withColumn('cohort', f.lit(cohort_num))
             cohort_num += 1
             cohort_selection.append(cohort_range)
         # Reduce all dataframe to overwrite original
         battlelogs_filtered = reduce(DataFrame.unionAll, cohort_selection)
+
+    else:
+        log.warning('Verify to have a minimum of one time range defined for your'
+                    'cohort. Check the parameters defined')
+        raise
 
     return battlelogs_filtered
 

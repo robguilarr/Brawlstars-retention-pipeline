@@ -23,7 +23,7 @@ _pandas: &pandas
   save_args:
     index: False
 
-player_tags:
+player_tags_txt:
   type: text.TextDataSet
   filepath: data/01_player_tags/tags.txt
 
@@ -35,9 +35,8 @@ battlelogs_filtered_data@pyspark:
   <<: *pyspark
   filepath: data/02_raw_battlelogs/battlelogs_filtered.parquet
 
-raw_players_info_data:
+raw_players_info_data@pandas:
   <<: *pandas
-  type: pandas.CSVDataSet
   filepath: data/03_raw_metadata/raw_players_info.csv
 
 events_showdown_data@pyspark:
@@ -46,7 +45,6 @@ events_showdown_data@pyspark:
 
 events_showdown_data@pandas:
   <<: *pandas
-  type: pandas.CSVDataSet
   filepath: data/04_enriched_data/events_showdown_data.csv
 
 events_special_data@pyspark:
@@ -55,5 +53,4 @@ events_special_data@pyspark:
 
 events_special_data@pandas:
   <<: *pandas
-  type: pandas.CSVDataSet
   filepath: data/04_enriched_data/events_special_data.csv
