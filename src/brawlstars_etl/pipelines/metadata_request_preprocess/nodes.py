@@ -5,6 +5,8 @@ generated using Kedro 0.18.4
 # General dependencies
 import pandas as pd
 import brawlstats
+# Parameters definitions
+from typing import Any, Dict, Tuple
 # To load the configuration (https://kedro.readthedocs.io/en/stable/kedro_project_setup/configuration.html#credentials)
 from kedro.config import ConfigLoader
 from kedro.framework.project import settings
@@ -17,7 +19,9 @@ log = logging.getLogger(__name__)
 # Async processes
 import asyncio
 
-def players_info_request(player_tags: str) -> pd.DataFrame:
+def players_info_request(player_tags_txt: str,
+                         parameters : Dict
+) -> pd.DataFrame:
     '''
     Extracts Players metadata from Brawlstars API by executing an Async Event Loop over a list of futures objects.
     These are made of task objects built of Async threads due blocking call limitations of api_request sub_module.
@@ -38,7 +42,7 @@ def players_info_request(player_tags: str) -> pd.DataFrame:
     client = brawlstats.Client(token=API_KEY)
 
     # Create list of player tags, from catalog
-    player_tags = player_tags.split(',')
+    player_tags_txt = player_tags_txt.split(',')
 
     def api_request(tag: str) -> pd.DataFrame:
         '''Request player data from the Brawl Stars API and give a structured format'''
@@ -76,8 +80,15 @@ def players_info_request(player_tags: str) -> pd.DataFrame:
         log.info(f"PLayer info request process Finished in {time.time() - start} seconds")
         return player_metadata
 
-    # Run the events-loop
-    player_metadata = asyncio.run(spawn_request(player_tags[:20]))
+    def activate_request(n: int = None) -> pd.DataFrame:
+        '''Run the events-loop, check for request limit defined by user'''
+        if n:
+            player_metadata = asyncio.run(spawn_request(player_tags_txt[:n]))
+        else:
+            player_metadata = asyncio.run(spawn_request(player_tags_txt))
+        return player_metadata
+
+    player_metadata = activate_request(n= parameters['metadata_limit'])
 
     # Validate concurrency didn't affect the data request
     try:

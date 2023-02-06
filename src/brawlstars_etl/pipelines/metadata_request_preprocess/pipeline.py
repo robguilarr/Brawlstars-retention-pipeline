@@ -10,7 +10,7 @@ def create_pipeline(**kwargs) -> Pipeline:
         [
             node(
                 func=players_info_request,
-                inputs='player_tags_txt',
+                inputs=['player_tags_txt','parameters'],
                 outputs='raw_players_info@pandas',
                 name='players_info_request_node'
             )

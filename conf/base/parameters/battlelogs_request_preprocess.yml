@@ -6,6 +6,8 @@
 
 # ----- Parameters for preprocessing ----
 
+battlelogs_limit: 20
+
 raw_battlelogs_schema:
   - "battleTime STRING, 
     event_id BIGINT, 

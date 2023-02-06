@@ -11,7 +11,6 @@ from typing import Any, Dict, Tuple
 from ast import literal_eval
 from functools import reduce
 
-import pyspark.sql
 # To load the configuration (https://kedro.readthedocs.io/en/stable/kedro_project_setup/configuration.html#credentials)
 from kedro.config import ConfigLoader
 from kedro.framework.project import settings
@@ -24,12 +23,15 @@ log = logging.getLogger(__name__)
 # Async processes
 import asyncio
 # Spark SQL API
+import pyspark.sql
 from pyspark.sql import SparkSession
 from pyspark.sql import DataFrame
 import pyspark.sql.functions as f
 
 
-def battlelogs_request(player_tags_txt: str) -> pd.DataFrame:
+def battlelogs_request(player_tags_txt: str,
+                       parameters : Dict
+) -> pd.DataFrame:
     '''
     Extracts Battlelogs from Brawlstars API by executing an Async Event Loop over a list of futures objects. These are
     made of task objects built of Async threads due blocking call limitations of api_request sub_module.
@@ -88,8 +90,15 @@ def battlelogs_request(player_tags_txt: str) -> pd.DataFrame:
         log.info(f"Battlelogs request process Finished in {time.time() - start} seconds")
         return raw_battlelogs
 
-    # Run the events-loop
-    raw_battlelogs = asyncio.run(spawn_request(player_tags_txt[:20]))
+    def activate_request(n: int = None) -> pd.DataFrame:
+        '''Run the events-loop, check for request limit defined by user'''
+        if n:
+            raw_battlelogs = asyncio.run(spawn_request(player_tags_txt[:n]))
+        else:
+            raw_battlelogs = asyncio.run(spawn_request(player_tags_txt))
+        return raw_battlelogs
+
+    raw_battlelogs = activate_request(n= parameters['battlelogs_limit'])
 
     # Replace dots in column names
     raw_battlelogs.columns = [col_name.replace('.','_') for col_name in raw_battlelogs.columns]
@@ -104,21 +113,21 @@ def battlelogs_request(player_tags_txt: str) -> pd.DataFrame:
 
 
 def battlelogs_filter(raw_battlelogs: pd.DataFrame,
-                          parameters: Dict[list, list]
+                          parameters: Dict
 ) -> pyspark.sql.DataFrame:
     '''
     Filter a variety of players into cohorts, also known as samples for a pre-defined study. To take advantage of
     its use, verify that at least one time range is defined within the battlelogs_request_preprocess pipeline
     parameters.
-    This node also applies a user-defined function that transforms the raw date and time (ISO 8601) from the Brawl
-    Stars API, then transforms it to java.util.GregorianCalendar (low-level date format) for Spark to use. process.
+    This node also applies a user-defined function that transforms the raw 'datetime' (ISO 8601) from the Brawl
+    Stars API, then transforms it to java.util.GregorianCalendar (low-level date format) for Spark processing.
     Args:
         raw_battlelogs: All players battlelogs concatenated into a structured Dataframe
         parameters[cohort_time_range]: Time range(s) to subset
     Returns:
         Filtered Pyspark DataFrame containing only cohorts required for the study
     '''
-    # Create Spark dataframe based on pandas parquet
+    # Call | Create Spark Session
     spark = SparkSession.builder.getOrCreate()
 
     # Ingest battlelogs data and validate against DDL schema
@@ -135,7 +144,7 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
         if 'battleTime' not in battlelogs_filtered.columns:
             raise ValueError('Check dataframe contains "battleTime" column')
         else:
-            # Convert string to date format, original timestamps are in ISO 8601 format ex: 20230204T161026.000Z
+            # Convert string to date format, original timestamps are in ~ ISO 8601 format ex: 20230204T161026.000Z
             convertDT = f.udf(lambda string: dt.datetime.strptime(string, "%Y%m%dT%H%M%S.%fZ").date())
             battlelogs_filtered = battlelogs_filtered.withColumn('battleTime',
                                                                  convertDT('battleTime'))
@@ -171,9 +180,3 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
         raise
 
     return battlelogs_filtered
-
-def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame
-) -> (pyspark.sql.DataFrame, pyspark.sql.DataFrame):
-    events_showdown = battlelogs_filtered.coalesce(1)
-    events_special = battlelogs_filtered.coalesce(1)
-    return events_showdown, events_special
