@@ -4,6 +4,7 @@ generated using Kedro 0.18.4
 """
 # General dependencies
 import pandas as pd
+import numpy as np
 import brawlstats
 import datetime as dt
 # Parameters definitions
@@ -92,10 +93,20 @@ def battlelogs_request(player_tags_txt: str,
 
     def activate_request(n: int = None) -> pd.DataFrame:
         '''Run the events-loop, check for request limit defined by user'''
+        raw_battlelogs = pd.DataFrame()
         if n:
+            # For sampling purposes
             raw_battlelogs = asyncio.run(spawn_request(player_tags_txt[:n]))
         else:
-            raw_battlelogs = asyncio.run(spawn_request(player_tags_txt))
+            # For running entire batches
+            split_tags = np.array_split(player_tags_txt, len(player_tags_txt) / 10)
+            for batch in split_tags:
+                raw_battlelogs_tmp = asyncio.run(spawn_request(batch))
+                try:
+                    raw_battlelogs = pd.concat([raw_battlelogs,raw_battlelogs_tmp], ignore_index=True)
+                except:
+                    pass
+
         return raw_battlelogs
 
     raw_battlelogs = activate_request(n= parameters['battlelogs_limit'])
