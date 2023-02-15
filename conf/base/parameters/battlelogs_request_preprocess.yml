@@ -4,9 +4,11 @@
 # Documentation for this file format can be found in "Parameters"
 # Link: https://kedro.readthedocs.io/en/0.18.4/kedro_project_setup/configuration.html#parameters
 
-# ----- Parameters for preprocessing ----
+# ----- Parameters for logs request ----
 
 battlelogs_limit:
+
+# ----- Parameters for preprocessing ----
 
 raw_battlelogs_schema:
   - "battleTime STRING, 
@@ -38,7 +40,10 @@ raw_battlelogs_schema:
      battle_level_name STRING,
      battle_level_id BIGINT"
 
+# ----- Parameters for filtering ----
+
+exclude_missing_events: true
+
 cohort_time_range:
   - ("2019-10-01", "2022-10-10")
   - ("2022-10-11", "2023-10-10")
-  #- ("2023-01-03", "2023-01-05")

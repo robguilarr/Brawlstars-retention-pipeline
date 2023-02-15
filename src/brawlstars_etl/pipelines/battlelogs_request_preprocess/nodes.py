@@ -8,7 +8,7 @@ import numpy as np
 import brawlstats
 import datetime as dt
 # Parameters definitions
-from typing import Any, Dict, Tuple
+from typing import Dict
 from ast import literal_eval
 from functools import reduce
 
@@ -56,7 +56,7 @@ def battlelogs_request(player_tags_txt: str,
     player_tags_txt = player_tags_txt.split(',')
 
     def api_request(tag: str) -> pd.DataFrame:
-        '''Request battlelogs from the Brawl Stars API and give a strutured format'''
+        '''Request battlelogs from the Brawl Stars API and give a structured format'''
         try:
             # Extract list of 25 most recent session logs
             player_battle_logs = client.get_battle_logs(tag).raw_data
@@ -149,6 +149,10 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
         log.warning('Type error on the DDL schema for the battlelogs,'
                     'check "raw_battlelogs_schema" on the node parameters')
         raise
+
+    # Exclude missing events ids (519325 -> 483860, not useful for activity aggregations)
+    if parameters['exclude_missing_events']:
+        battlelogs_filtered = battlelogs_filtered.filter("event_id != 0")
 
     # Filter date based on timestamp, separated cohort can be extracted to exclude specific dates
     if parameters['cohort_time_range']:
