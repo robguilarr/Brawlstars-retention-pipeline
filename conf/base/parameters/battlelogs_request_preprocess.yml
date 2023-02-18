@@ -5,45 +5,45 @@
 # Link: https://kedro.readthedocs.io/en/0.18.4/kedro_project_setup/configuration.html#parameters
 
 # ----- Parameters for logs request ----
+battlelogs_request:
 
-battlelogs_limit:
+  battlelogs_limit:
 
-# ----- Parameters for preprocessing ----
+  # ----- Parameters for preprocessing and filtering ----
+battlelogs_filter:
 
-raw_battlelogs_schema:
-  - "battleTime STRING, 
-     event_id BIGINT, 
-     event_mode STRING,
-     event_map STRING,
-     battle_mode STRING,
-     battle_type STRING,
-     battle_result STRING,
-     battle_duration BIGINT,
-     battle_trophyChange BIGINT,
-     battle_starPlayer_tag STRING,
-     battle_starPlayer_name STRING,
-     battle_starPlayer_brawler_id BIGINT,
-     battle_starPlayer_brawler_name STRING,
-     battle_starPlayer_brawler_power BIGINT,
-     battle_starPlayer_brawler_trophies BIGINT,
-     battle_teams STRING,
-     battle_rank BIGINT,
-     battle_players STRING,
-     player_id STRING,
-     battle_starPlayer STRING,
-     battle_bigBrawler_tag STRING,
-     battle_bigBrawler_name STRING,
-     battle_bigBrawler_brawler_id BIGINT,
-     battle_bigBrawler_brawler_name STRING,
-     battle_bigBrawler_brawler_power BIGINT,
-     battle_bigBrawler_brawler_trophies BIGINT,
-     battle_level_name STRING,
-     battle_level_id BIGINT"
+  exclude_missing_events: true
 
-# ----- Parameters for filtering ----
+  cohort_time_range:
+    - ("2019-10-01", "2022-10-10")
+    - ("2022-10-11", "2023-10-10")
 
-exclude_missing_events: true
-
-cohort_time_range:
-  - ("2019-10-01", "2022-10-10")
-  - ("2022-10-11", "2023-10-10")
+  raw_battlelogs_schema:
+    - "battleTime STRING, 
+       event_id BIGINT, 
+       event_mode STRING,
+       event_map STRING,
+       battle_mode STRING,
+       battle_type STRING,
+       battle_result STRING,
+       battle_duration BIGINT,
+       battle_trophyChange BIGINT,
+       battle_starPlayer_tag STRING,
+       battle_starPlayer_name STRING,
+       battle_starPlayer_brawler_id BIGINT,
+       battle_starPlayer_brawler_name STRING,
+       battle_starPlayer_brawler_power BIGINT,
+       battle_starPlayer_brawler_trophies BIGINT,
+       battle_teams STRING,
+       battle_rank BIGINT,
+       battle_players STRING,
+       player_id STRING,
+       battle_starPlayer STRING,
+       battle_bigBrawler_tag STRING,
+       battle_bigBrawler_name STRING,
+       battle_bigBrawler_brawler_id BIGINT,
+       battle_bigBrawler_brawler_name STRING,
+       battle_bigBrawler_brawler_power BIGINT,
+       battle_bigBrawler_brawler_trophies BIGINT,
+       battle_level_name STRING,
+       battle_level_id BIGINT"

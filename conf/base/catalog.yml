@@ -39,18 +39,34 @@ raw_players_info_data@pandas:
   <<: *pandas
   filepath: data/03_raw_metadata/raw_players_info.csv
 
-events_showdown_data@pyspark:
+event_solo_data@pyspark:
   <<: *pyspark
-  filepath: data/04_enriched_data/events_showdown_data.parquet
+  filepath: data/02_raw_battlelogs/event_types/event_solo_data.parquet
 
-events_showdown_data@pandas:
+event_solo_data@pandas:
   <<: *pandas
-  filepath: data/04_enriched_data/events_showdown_data.csv
+  filepath: data/02_raw_battlelogs/event_types/event_solo_data.csv
 
-events_special_data@pyspark:
+event_duo_data@pyspark:
   <<: *pyspark
-  filepath: data/04_enriched_data/events_special_data.parquet
+  filepath: data/02_raw_battlelogs/event_types/event_duo_data.parquet
 
-events_special_data@pandas:
+event_duo_data@pandas:
   <<: *pandas
-  filepath: data/04_enriched_data/events_special_data.csv
+  filepath: data/02_raw_battlelogs/event_types/event_duo_data.csv
+
+event_3v3_data@pyspark:
+  <<: *pyspark
+  filepath: data/02_raw_battlelogs/event_types/event_3v3_data.parquet
+
+event_3v3_data@pandas:
+  <<: *pandas
+  filepath: data/02_raw_battlelogs/event_types/event_3v3_data.csv
+
+event_special_data@pyspark:
+  <<: *pyspark
+  filepath: data/02_raw_battlelogs/event_types/event_special_data.parquet
+
+event_special_data@pandas:
+  <<: *pandas
+  filepath: data/02_raw_battlelogs/event_types/event_special_data.csv

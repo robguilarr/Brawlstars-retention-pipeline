@@ -10,13 +10,13 @@ def create_pipeline(**kwargs) -> Pipeline:
         [
             node(
                 func=battlelogs_request,
-                inputs=['player_tags_txt','parameters'],
+                inputs=['player_tags_txt','params:battlelogs_request'],
                 outputs='raw_battlelogs_data@pandas',
                 name="battlelogs_request_node"
             ),
             node(
                 func=battlelogs_filter,
-                inputs=['raw_battlelogs_data@pandas','parameters'],
+                inputs=['raw_battlelogs_data@pandas','params:battlelogs_filter'],
                 outputs='battlelogs_filtered_data@pyspark',
                 name='battlelogs_filter_node'
             )
