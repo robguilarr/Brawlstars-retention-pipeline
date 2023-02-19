@@ -28,6 +28,7 @@ import pyspark.sql
 from pyspark.sql import SparkSession
 from pyspark.sql import DataFrame
 import pyspark.sql.functions as f
+import pyspark.sql.types as t
 
 
 def battlelogs_request(player_tags_txt: str,
@@ -145,6 +146,12 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
     try:
         battlelogs_filtered = spark.createDataFrame(data= raw_battlelogs,
                                                   schema= parameters['raw_battlelogs_schema'][0])
+        # Convert strings of lists as Arrays of dictionaries
+        battlelogs_filtered = (battlelogs_filtered.withColumn('battle_teams', f.from_json('battle_teams',
+                                                                                          t.ArrayType(t.StringType())))
+                               .withColumn('battle_players', f.from_json('battle_players',
+                                                                         t.ArrayType(t.StringType())))
+                               )
     except TypeError:
         log.warning('Type error on the DDL schema for the battlelogs,'
                     'check "raw_battlelogs_schema" on the node parameters')
