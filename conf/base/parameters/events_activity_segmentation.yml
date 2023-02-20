@@ -1,0 +1,28 @@
+# This is a boilerplate parameters config generated for pipeline 'events_activity_segmentation'
+# using Kedro 0.18.4.
+#
+# Documentation for this file format can be found in "Parameters"
+# Link: https://kedro.readthedocs.io/en/0.18.4/kedro_project_setup/configuration.html#parameters
+
+events_activity_segmentation:
+
+  event_3v3: ['gemGrab','brawlBall','bounty','heist','hotZone','knockout']
+
+  event_special: ['roboRumble','bossFight','lastStand','bigGame']
+
+  event_solo: ['soloShowdown']
+
+  event_duo: ['duoShowdown']
+
+  standard_columns:
+  - 'cohort'
+  - 'battleTime'
+  - 'player_id'
+  - 'event_id'
+  - 'event_mode'
+  - 'event_map'
+  - 'battle_type'
+  - 'battle_result'
+  - 'battle_rank'
+  - 'battle_duration'
+  - 'battle_trophyChange'

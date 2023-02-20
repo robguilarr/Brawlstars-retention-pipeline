@@ -2,7 +2,6 @@
 spark.driver.maxResultSize: 5g
 spark.driver.memory: 5g
 spark.hadoop.fs.s3a.impl: org.apache.hadoop.fs.s3a.S3AFileSystem
-spark.sql.debug.maxToStringFields: 2000 # Avoid truncating team's string
 spark.sql.execution.arrow.pyspark.enabled: true
 spark.history.ui.port: 18080
 spark.sql.legacy.timeParserPolicy: LEGACY
