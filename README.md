@@ -1,4 +1,4 @@
-# brawlstars_etl
+# Brawlstars Gamelogs Extractor & Processor pipeline
 
 ## Overview
 
