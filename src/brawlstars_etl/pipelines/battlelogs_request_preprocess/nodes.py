@@ -161,6 +161,12 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
     if parameters['exclude_missing_events']:
         battlelogs_filtered = battlelogs_filtered.filter("event_id != 0")
 
+    # Battlestar player validation
+    battlelogs_filtered = battlelogs_filtered.withColumn('is_starPlayer',
+                                                         f.when(f.col('battle_starPlayer_tag') == f.col('player_id'), 1)
+                                                         .otherwise(0)
+                                                         )
+
     # Filter date based on timestamp, separated cohort can be extracted to exclude specific dates
     if parameters['cohort_time_range']:
         if 'battleTime' not in battlelogs_filtered.columns:
@@ -200,5 +206,8 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
         log.warning('Verify to have a minimum of one time range defined for your'
                     'cohort. Check the parameters defined')
         raise
+
+    # Create hierarchical ID
+    battlelogs_filtered = battlelogs_filtered.withColumn('battlelog_id', f.monotonically_increasing_id())
 
     return battlelogs_filtered

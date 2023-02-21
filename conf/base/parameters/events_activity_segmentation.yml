@@ -15,14 +15,17 @@ events_activity_segmentation:
   event_duo: ['duoShowdown']
 
   standard_columns:
+  - 'battlelog_id'
   - 'cohort'
   - 'battleTime'
   - 'player_id'
   - 'event_id'
   - 'event_mode'
   - 'event_map'
+  - 'is_starPlayer'
   - 'battle_type'
   - 'battle_result'
   - 'battle_rank'
   - 'battle_duration'
   - 'battle_trophyChange'
+  - 'battle_level_name'
