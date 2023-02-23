@@ -142,8 +142,8 @@ def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame,
     # Call | Create Spark Session
     spark = SparkSession.builder.getOrCreate()
 
-    # TODO: read more https://brawlstars.fandom.com/wiki/Hot_Zone
-    # TODO: See how to extract items here https://stackoverflow.com/questions/64476394/how-to-parse-and-explode-a-list-of-dictionaries-stored-as-string-in-pyspark
+    # IMP: read more https://brawlstars.fandom.com/wiki/Hot_Zone
+    # IMP: See how to extract items here https://stackoverflow.com/questions/64476394/how-to-parse-and-explode-a-list-of-dictionaries-stored-as-string-in-pyspark
 
     log.info("Deconstructing Solo Events")
     if parameters['event_solo'] and isinstance(parameters['event_solo'], list):
