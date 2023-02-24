@@ -12,7 +12,8 @@ def create_pipeline(**kwargs) -> Pipeline:
             func=battlelogs_deconstructor,
             inputs=['battlelogs_filtered_data@pyspark','params:events_activity_segmentation'],
             outputs=['event_solo_data@pyspark', 'event_duo_data@pyspark',
-                     'event_3v3_data@pyspark', 'event_special_data@pyspark'],
+                     'event_3v3_data@pyspark', 'event_5v1_data@pyspark',
+                     'event_special_data@pyspark'],
             name='battlelogs_deconstructor_node'
         )
     ])

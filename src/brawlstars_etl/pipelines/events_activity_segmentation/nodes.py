@@ -3,7 +3,6 @@ This is a boilerplate pipeline 'events_activity_segmentation'
 generated using Kedro 0.18.4
 """
 # Logging
-import time
 import logging
 log = logging.getLogger(__name__)
 from typing import Dict
@@ -13,10 +12,11 @@ from pyspark.sql import SparkSession
 import pyspark.sql.functions as f
 import pyspark.sql.types as t
 
+
 def _group_exploder_solo(event_solo_data: pyspark.sql.DataFrame,
                         standard_columns: list
 ) -> pyspark.sql.DataFrame:
-    '''Helper function to mine and extract player session teammate information
+    '''Helper function to mine and extract solo-events information
      from dictionary-formatted columns'''
 
     # Explode list of player dictionaries as StringTypes
@@ -37,14 +37,12 @@ def _group_exploder_solo(event_solo_data: pyspark.sql.DataFrame,
     # Convert to flatten dataframe
     event_solo_data = event_solo_data.groupBy(standard_columns).agg(f.collect_list('tag').alias('players_tag'),
                                                                     f.collect_list('brawler').alias('players_brawler'))
-
     return event_solo_data
-
 
 def _group_exploder_duo(event_solo_duo: pyspark.sql.DataFrame,
                         standard_columns: list
 ) -> pyspark.sql.DataFrame:
-    '''Helper function to mine and extract duos information
+    '''Helper function to mine and extract duo-events information
      from dictionary-formatted columns'''
 
     # Explode all teams (duos) as StringTypes
@@ -83,11 +81,10 @@ def _group_exploder_duo(event_solo_duo: pyspark.sql.DataFrame,
                       )
     return event_solo_duo
 
-
 def _group_exploder_3v3(event_3v3_data: pyspark.sql.DataFrame,
                         standard_columns: list
 ) -> pyspark.sql.DataFrame:
-    '''Helper function to mine and extract 3v3 sessions information
+    '''Helper function to mine and extract 3v3 events information
      from dictionary-formatted columns'''
 
     # Explode the two teams (3v3) as StringTypes
@@ -133,8 +130,53 @@ def _group_exploder_3v3(event_3v3_data: pyspark.sql.DataFrame,
                       .agg(f.collect_list('player_trios_exploded').alias('player_trios'),
                            f.collect_list('brawler_trios_exploded').alias('brawler_trios'))
                       )
-
     return event_3v3_data
+
+def _group_exploder_5v1(event_5v1_data: pyspark.sql.DataFrame,
+                        standard_columns: list
+) -> pyspark.sql.DataFrame:
+    '''Helper function to mine and extract 5v1 events information
+     from dictionary-formatted columns'''
+    # bigGame: 5 players + 1 big brawler (Player)
+
+    # Explode the two teams (5v1) as StringTypes
+    event_5v1_data = event_5v1_data.withColumn('battle_players', f.explode('battle_players'))
+
+    # Convert dictionary of players from StringTypes to Array of MapTypes
+    MapStructure = t.MapType(t.StringType(), t.StringType())
+    event_5v1_data = event_5v1_data.withColumn('battle_players', f.from_json('battle_players', MapStructure))
+
+    # Separate and concatenate the 3 player tags
+    event_5v1_data = (event_5v1_data.withColumn('team_player_tag', f.col('battle_players').getItem('tag'))
+                                    .withColumn('team_player_brawler', f.col('battle_players').getItem('brawler'))
+                                    .withColumn('team_player_brawler', f.from_json('team_player_brawler', MapStructure))
+                                    .withColumn('team_player_brawler_name', f.col('team_player_brawler').getItem('name'))
+                      )
+    # Convert to flatten dataframe
+    standard_columns.extend(['battle_bigBrawler_tag','battle_bigBrawler_brawler_name'])
+    event_5v1_data = (event_5v1_data.groupBy(standard_columns)
+                                    .agg(f.collect_list('team_player_tag').alias('team_players'),
+                                         f.collect_list('team_player_brawler_name').alias('team_brawlers'))
+                      )
+    # Rename columns for Big brawler
+    event_5v1_data = (event_5v1_data.withColumnRenamed('battle_bigBrawler_tag','bigBrawler_tag')
+                                    .withColumnRenamed('battle_bigBrawler_brawler_name', 'bigBrawler_name')
+                      )
+
+    return event_5v1_data
+
+def _group_exploder_special(event_special_data: pyspark.sql.DataFrame,
+                            standard_columns: list
+) -> pyspark.sql.DataFrame:
+    '''Helper function to mine and extract special events information
+     from dictionary-formatted columns
+     '''
+    # roboRumble: 3 players fight against 9 waves of robots (NPC)
+    # bossFight: 3 player against big robot (NPC)
+    # lastStand: 3 players as a team to protect 8-Bit
+
+    return event_special_data
+
 
 def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame,
                             parameters: Dict
@@ -148,7 +190,7 @@ def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame,
     log.info("Deconstructing Solo Events")
     if parameters['event_solo'] and isinstance(parameters['event_solo'], list):
         event_solo_data = battlelogs_filtered.filter(f.col('event_mode').isin(parameters['event_solo']))
-        event_solo_data = _group_exploder_solo(event_solo_data, parameters['standard_columns'])
+        #event_solo_data = _group_exploder_solo(event_solo_data, parameters['standard_columns'])
     else:
         log.warning("Solo Event modes not defined or not found according to parameter list")
         event_solo_data = spark.createDataFrame([], schema=t.StructType([]))
@@ -156,7 +198,7 @@ def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame,
     log.info("Deconstructing Duo Events")
     if parameters['event_duo'] and isinstance(parameters['event_duo'], list):
         event_duo_data = battlelogs_filtered.filter(f.col('event_mode').isin(parameters['event_duo']))
-        event_duo_data = _group_exploder_duo(event_duo_data, parameters['standard_columns'])
+        #event_duo_data = _group_exploder_duo(event_duo_data, parameters['standard_columns'])
     else:
         log.warning("Duo Event modes not defined or not found according to parameter list")
         event_duo_data = spark.createDataFrame([], schema=t.StructType([]))
@@ -164,17 +206,28 @@ def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame,
     log.info("Deconstructing 3 vs 3 Events")
     if parameters['event_3v3'] and isinstance(parameters['event_3v3'], list):
         event_3v3_data = battlelogs_filtered.filter(f.col('event_mode').isin(parameters['event_3v3']))
-        event_3v3_data = _group_exploder_3v3(event_3v3_data, parameters['standard_columns'])
+        #event_3v3_data = _group_exploder_3v3(event_3v3_data, parameters['standard_columns'])
     else:
         log.warning("3 vs 3 Event modes not defined or not found according to parameter list")
         event_3v3_data = spark.createDataFrame([], schema=t.StructType([]))
 
+    log.info("Deconstructing 5 vs 1 Events")
+    if parameters['event_5v1'] and isinstance(parameters['event_5v1'], list):
+        event_5v1_data = battlelogs_filtered.filter(f.col('event_mode').isin(parameters['event_5v1']))
+        event_5v1_data = _group_exploder_5v1(event_5v1_data, parameters['standard_columns'])
+    else:
+        log.warning("5 vs 1 Event modes not defined or not found according to parameter list")
+        event_5v1_data = spark.createDataFrame([], schema=t.StructType([]))
+
     log.info("Deconstructing Special Events")
     if parameters['event_special'] and isinstance(parameters['event_special'], list):
         event_special_data = battlelogs_filtered.filter(f.col('event_mode').isin(parameters['event_special']))
+        event_special_data = _group_exploder_special(event_special_data, parameters['standard_columns'])
     else:
         log.warning("Special Event modes not defined or not found according to parameter list")
         event_special_data = spark.createDataFrame([], schema=t.StructType([]))
+
+    return event_solo_data, event_duo_data, event_3v3_data, event_5v1_data, event_special_data
 
     # From here we also need to have the missing gametags as output to be used by 'Players Info Request Node'
 
@@ -184,5 +237,3 @@ def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame,
     # define if the team
 
     # Star player is selected as https://help.supercellsupport.com/brawl-stars/en/articles/star-player.html
-
-    return event_solo_data, event_duo_data, event_3v3_data, event_special_data
