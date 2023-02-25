@@ -137,7 +137,7 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
         raw_battlelogs: All players battlelogs concatenated into a structured Dataframe
         parameters[cohort_time_range]: Time range(s) to subset
     Returns:
-        Filtered Pyspark DataFrame containing only cohorts required for the study
+        Filtered Pyspark DataFrame containing only cohorts and features required for the study
     '''
     # Call | Create Spark Session
     spark = SparkSession.builder.getOrCreate()
