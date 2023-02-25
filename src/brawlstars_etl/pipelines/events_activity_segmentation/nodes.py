@@ -93,11 +93,11 @@ def _group_exploder_duo(event_duo_data: pyspark.sql.DataFrame,
         log.exception(e)
         log.warning("-- Exploder broken: Check 'battle_teams' column has a consistent structure according API specs --")
         standard_columns.extend(['battle_teams'])
-        event_solo_duo = (event_duo_data.select(*standard_columns)
+        event_duo_data = (event_duo_data.select(*standard_columns)
                                         .withColumnRenamed('battle_teams', 'player_duos')
                                         .withColumn('brawler_duos', f.lit('Unavailable'))
                            )
-    return event_solo_duo
+    return event_duo_data
 
 def _group_exploder_3v3(event_3v3_data: pyspark.sql.DataFrame,
                         standard_columns: list
