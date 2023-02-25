@@ -63,14 +63,6 @@ event_3v3_data@pandas:
   <<: *pandas
   filepath: data/02_raw_battlelogs/event_types/event_3v3_data.csv
 
-event_5v1_data@pyspark:
-  <<: *pyspark
-  filepath: data/02_raw_battlelogs/event_types/event_5v1_data.parquet
-
-event_5v1_data@pandas:
-  <<: *pandas
-  filepath: data/02_raw_battlelogs/event_types/event_5v1_data.csv
-
 event_special_data@pyspark:
   <<: *pyspark
   filepath: data/02_raw_battlelogs/event_types/event_special_data.parquet

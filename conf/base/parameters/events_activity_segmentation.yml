@@ -12,9 +12,7 @@ events_activity_segmentation:
 
   event_3v3: ['gemGrab','brawlBall','bounty','heist','hotZone','knockout']
 
-  event_5v1: ['bigGame']
-
-  event_special: ['roboRumble','bossFight','lastStand']
+  event_special: ['roboRumble','bossFight','lastStand', 'bigGame']
 
   standard_columns:
   - 'battlelog_id'
