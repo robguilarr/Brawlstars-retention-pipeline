@@ -25,6 +25,13 @@ HOOKS = (SparkHooks(),)
 # CONF_SOURCE = "conf"
 
 # Class that manages how configuration is loaded.
+from kedro.config import TemplatedConfigLoader
+CONFIG_LOADER_CLASS = TemplatedConfigLoader
+
+# Set the template parameters for our use case:
+# https://kedro.readthedocs.io/en/stable/kedro.config.TemplatedConfigLoader.html
+CONFIG_LOADER_ARGS = {"globals_pattern": "*globals.yml"}
+
 # CONFIG_LOADER_CLASS = ConfigLoader
 # Keyword arguments to pass to the `CONFIG_LOADER_CLASS` constructor.
 # CONFIG_LOADER_ARGS = {

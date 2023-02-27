@@ -36,15 +36,18 @@ def _group_exploder_solo(event_solo_data: pyspark.sql.DataFrame,
         event_solo_data = event_solo_data.withColumn('brawler', f.col('brawler').getItem('name'))
 
         # Convert to flatten dataframe
-        event_solo_data = event_solo_data.groupBy(standard_columns).agg(f.collect_list('tag').alias('players_tag'),
-                                                                        f.collect_list('brawler').alias('players_brawler'))
+        event_solo_data = (event_solo_data.groupBy(standard_columns)
+                                          .agg(f.collect_list('tag').alias('players_collection'),
+                                               f.collect_list('brawler').alias('brawlers_collection')))
     except Exception as e:
         log.exception(e)
         log.warning("-- Exploder broken: Check 'battle_players' column has a consistent structure according API specs --")
         standard_columns.extend(['battle_players'])
         event_solo_data = (event_solo_data.select(*standard_columns)
-                                          .withColumnRenamed('battle_players', 'players_tag')
-                                          .withColumn('players_brawler', f.lit('Unavailable'))
+                                          .withColumn('players_collection',
+                                                      f.lit("['null']").cast(t.ArrayType(t.StringType())))
+                                          .withColumn('brawlers_collection',
+                                                      f.lit("['null']").cast(t.ArrayType(t.StringType())))
                            )
     return event_solo_data
 
@@ -86,16 +89,18 @@ def _group_exploder_duo(event_duo_data: pyspark.sql.DataFrame,
                           )
         # Convert to flatten dataframe
         event_duo_data = (event_duo_data.groupBy(standard_columns)
-                                        .agg(f.collect_list('player_duos_exploded').alias('player_duos'),
-                                             f.collect_list('brawler_duos_exploded').alias('brawler_duos'))
+                                        .agg(f.collect_list('player_duos_exploded').alias('players_collection'),
+                                             f.collect_list('brawler_duos_exploded').alias('brawlers_collection'))
                           )
     except Exception as e:
         log.exception(e)
         log.warning("-- Exploder broken: Check 'battle_teams' column has a consistent structure according API specs --")
         standard_columns.extend(['battle_teams'])
         event_duo_data = (event_duo_data.select(*standard_columns)
-                                        .withColumnRenamed('battle_teams', 'player_duos')
-                                        .withColumn('brawler_duos', f.lit('Unavailable'))
+                                        .withColumn('players_collection',
+                                                    f.lit("['null']").cast(t.ArrayType(t.StringType())))
+                                        .withColumn('brawlers_collection',
+                                                    f.lit("['null']").cast(t.ArrayType(t.StringType())))
                            )
     return event_duo_data
 
@@ -146,16 +151,18 @@ def _group_exploder_3v3(event_3v3_data: pyspark.sql.DataFrame,
                           )
         # Convert to flatten dataframe
         event_3v3_data = (event_3v3_data.groupBy(standard_columns)
-                          .agg(f.collect_list('player_trios_exploded').alias('player_trios'),
-                               f.collect_list('brawler_trios_exploded').alias('brawler_trios'))
+                                        .agg(f.collect_list('player_trios_exploded').alias('players_collection'),
+                                             f.collect_list('brawler_trios_exploded').alias('brawlers_collection'))
                           )
     except Exception as e:
         log.exception(e)
         log.warning("-- Exploder broken: Check 'battle_teams' column has a consistent structure according API specs --")
         standard_columns.extend(['battle_teams'])
         event_3v3_data = (event_3v3_data.select(*standard_columns)
-                                        .withColumnRenamed('battle_teams', 'player_trios')
-                                        .withColumn('brawler_trios', f.lit('Unavailable'))
+                                        .withColumn('players_collection',
+                                                    f.lit("['null']").cast(t.ArrayType(t.StringType())))
+                                        .withColumn('brawlers_collection',
+                                                    f.lit("['null']").cast(t.ArrayType(t.StringType())))
                            )
     return event_3v3_data
 
@@ -183,24 +190,26 @@ def _group_exploder_special(event_special_data: pyspark.sql.DataFrame,
         # Convert to flatten dataframe
         standard_columns.extend(['battle_bigBrawler_tag', 'battle_bigBrawler_brawler_name'])
         event_special_data = (event_special_data.groupBy(standard_columns)
-                                                .agg(f.collect_list('team_player_tag').alias('team_players'),
-                                                     f.collect_list('team_player_brawler_name').alias('team_brawlers'))
+                                                .agg(f.collect_list('team_player_tag').alias('players_collection'),
+                                                     f.collect_list('team_player_brawler_name').alias('brawlers_collection'))
                               )
     except Exception as e:
         log.exception(e)
         log.warning("-- Exploder broken: Check 'battle_players' column has a consistent structure according API specs --")
         standard_columns.extend(['battle_players'])
         event_special_data = (event_special_data.select(*standard_columns)
-                                        .withColumnRenamed('battle_players', 'team_players')
-                                        .withColumn('team_brawlers', f.lit('Unavailable'))
+                                                .withColumn('players_collection',
+                                                            f.lit("['null']").cast(t.ArrayType(t.StringType())))
+                                                .withColumn('brawlers_collection',
+                                                            f.lit("['null']").cast(t.ArrayType(t.StringType())))
                            )
-
     return event_special_data
 
 
 def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame,
                             parameters: Dict
-) -> (pyspark.sql.DataFrame, pyspark.sql.DataFrame):
+) -> (pyspark.sql.DataFrame, pyspark.sql.DataFrame,
+      pyspark.sql.DataFrame, pyspark.sql.DataFrame):
     '''
     Disassembly (Explode) of player group records from raw JSON formats, to extract combinations of players and
     brawlers from the same team or from opponents, this is for each of the sessions.
