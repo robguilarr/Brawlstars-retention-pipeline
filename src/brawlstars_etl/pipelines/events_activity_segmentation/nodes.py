@@ -11,6 +11,7 @@ import pyspark.sql
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as f
 import pyspark.sql.types as t
+from pyspark.sql.window import Window
 
 
 def _group_exploder_solo(event_solo_data: pyspark.sql.DataFrame,
@@ -211,7 +212,7 @@ def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame,
 ) -> (pyspark.sql.DataFrame, pyspark.sql.DataFrame,
       pyspark.sql.DataFrame, pyspark.sql.DataFrame):
     '''
-    Disassembly (Explode) of player group records from raw JSON formats, to extract combinations of players and
+    Disassembly (Explosion) of player group records from raw JSON formats, to extract combinations of players and
     brawlers from the same team or from opponents, this is for each of the sessions.
     Each of the 'exploders' is parameterized by the user, according to the number of players needed for each type
     of event.
@@ -257,3 +258,32 @@ def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame,
         event_special_data = spark.createDataFrame([], schema=t.StructType([]))
 
     return event_solo_data, event_duo_data, event_3v3_data, event_special_data
+
+
+def activity_transformer(battlelogs_filtered: pyspark.sql.DataFrame,
+                         parameters: Dict
+) -> pyspark.sql.DataFrame:
+
+    battlelogs_filtered.show(truncate=False)
+
+    user_activity = (battlelogs_filtered.select('cohort','battleTime','player_id') # 'battlelog_id'
+                                        .groupBy('cohort','battleTime','player_id').count()
+                                        .withColumnRenamed('count','daily_sessions')
+                     )
+
+    # Find the first day when each player register a session per cohort
+
+    # Create a window by each one of the player windows and order them ascending per log time
+    player_window = (Window.partitionBy(['player_id']).
+                     orderBy(f.col('battleTime').asc())
+                     )
+    # Find the first logged date per user in the cohort
+    user_activity = user_activity.withColumn('first_log',
+                                             f.min('battleTime').over(player_window))
+    # Find days passed to see player return
+    user_activity = user_activity.withColumn('days_to_return',
+                                             f.datediff('battleTime','first_log'))
+    # user_activity = user_activity.orderBy(f.col('player_id').desc(), f.col('battleTime').desc()) STEP 3 <-----
+    #user_activity.show(truncate=False)
+
+    return user_activity
