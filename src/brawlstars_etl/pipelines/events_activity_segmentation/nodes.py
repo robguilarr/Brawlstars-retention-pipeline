@@ -264,12 +264,12 @@ def activity_transformer(battlelogs_filtered: pyspark.sql.DataFrame,
                          parameters: Dict
 ) -> pyspark.sql.DataFrame:
 
-    battlelogs_filtered.show(truncate=False)
-
     user_activity = (battlelogs_filtered.select('cohort','battleTime','player_id') # 'battlelog_id'
                                         .groupBy('cohort','battleTime','player_id').count()
                                         .withColumnRenamed('count','daily_sessions')
                      )
+
+    #user_activity = user_activity.orderBy(f.col('player_id').desc(), f.col('battleTime').desc())  # STEP 3 <-----
 
     # Find the first day when each player register a session per cohort
 
@@ -283,7 +283,10 @@ def activity_transformer(battlelogs_filtered: pyspark.sql.DataFrame,
     # Find days passed to see player return
     user_activity = user_activity.withColumn('days_to_return',
                                              f.datediff('battleTime','first_log'))
-    # user_activity = user_activity.orderBy(f.col('player_id').desc(), f.col('battleTime').desc()) STEP 3 <-----
+    # Count players with the same "first_log" and "days_to_return"
+    user_activity = (user_activity.groupBy(['first_log','days_to_return'])
+                                    .agg(f.count('player_id').alias('player_count')))
+
     #user_activity.show(truncate=False)
 
     return user_activity
