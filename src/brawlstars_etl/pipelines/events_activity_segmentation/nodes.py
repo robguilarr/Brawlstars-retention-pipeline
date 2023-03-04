@@ -271,22 +271,34 @@ def activity_transformer(battlelogs_filtered: pyspark.sql.DataFrame,
 
     #user_activity = user_activity.orderBy(f.col('player_id').desc(), f.col('battleTime').desc())  # STEP 3 <-----
 
+    # Construct the cohort on a weekly basis
+    user_activity = user_activity.withColumn('weekly_battleTime',
+                                             f.date_sub(f.next_day('battleTime', 'Monday'), 7))
+
+    # Construct the cohort on a monthly basis
+    user_activity = user_activity.withColumn('monthly_battleTime',
+                                             f.trunc('battleTime','month'))
+
     # Find the first day when each player register a session per cohort
 
+    time_freq = 'monthly_battleTime'  # 'monthly_battleTime','weekly_battleTime','battleTime'
     # Create a window by each one of the player windows and order them ascending per log time
-    player_window = (Window.partitionBy(['player_id']).
-                     orderBy(f.col('battleTime').asc())
-                     )
+    player_window = (Window.partitionBy(['player_id'])
+                            .orderBy(f.col(time_freq).asc()))
     # Find the first logged date per user in the cohort
     user_activity = user_activity.withColumn('first_log',
-                                             f.min('battleTime').over(player_window))
+                                             f.min(time_freq).over(player_window))
     # Find days passed to see player return
     user_activity = user_activity.withColumn('days_to_return',
-                                             f.datediff('battleTime','first_log'))
+                                             f.datediff(time_freq,'first_log'))
     # Count players with the same "first_log" and "days_to_return"
     user_activity = (user_activity.groupBy(['first_log','days_to_return'])
                                     .agg(f.count('player_id').alias('player_count')))
-
-    #user_activity.show(truncate=False)
+    # Pivot data from long format to wide
+    user_activity = (user_activity.groupBy(['first_log'])
+                                    .pivot('days_to_return')
+                                    .agg(f.first('player_count'))
+                                    .orderBy(['first_log'])
+                     )
 
     return user_activity
