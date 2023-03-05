@@ -260,45 +260,125 @@ def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame,
     return event_solo_data, event_duo_data, event_3v3_data, event_special_data
 
 
+@f.udf(returnType= t.IntegerType())
+def retention_metric(days_activity_list, day):
+    '''User Defined Function to return the user-retention
+     given the definition given by the parameter'''
+    # Subset columns of days needed
+    days_activity = days_activity_list[:day + 1]
+    # When day is 0 return the same value
+    if day == 0:
+        if days_activity[0] == 1:
+            return 1
+        else:
+            return 0
+    # Evaluate the day of retention is on the data, otherwise return 0
+    elif day > len(days_activity):
+        return 0
+    else:
+        # Evaluate user installed the app and return on the specific day
+        if days_activity[0] == 1 and days_activity[-1] == 1:
+            return 1
+        else:
+            return 0
+
+@f.udf(returnType= t.IntegerType())
+def sessions_sum(daily_sessions_list, day):
+    '''User Defined Function to return the total of
+     sessions accumulated, limiting the ranges by the
+     parameter defined by the user'''
+    # Subset columns of days needed
+    daily_sessions = daily_sessions_list[:day + 1]
+    # Sum the total of sessions in the given range
+    total = 0
+    for i in range(len(daily_sessions)):
+        if daily_sessions[i] != None:
+            total += int(daily_sessions[i])
+    return total
+
 def activity_transformer(battlelogs_filtered: pyspark.sql.DataFrame,
                          parameters: Dict
 ) -> pyspark.sql.DataFrame:
 
-    user_activity = (battlelogs_filtered.select('cohort','battleTime','player_id') # 'battlelog_id'
+    user_activity = (battlelogs_filtered.select('cohort','battleTime','player_id')
                                         .groupBy('cohort','battleTime','player_id').count()
                                         .withColumnRenamed('count','daily_sessions')
                      )
 
-    #user_activity = user_activity.orderBy(f.col('player_id').desc(), f.col('battleTime').desc())  # STEP 3 <-----
+    if parameters['cohort_frequency'] and isinstance(parameters['cohort_frequency'], str):
+        # Construct the cohort on a weekly basis
+        if parameters['cohort_frequency'] == 'weekly':
+            time_freq = 'weekly_battleTime'
+            user_activity = user_activity.withColumn('weekly_battleTime',
+                                                     f.date_sub(f.next_day('battleTime', 'Monday'), 7))
+        # Construct the cohort on a monthly basis
+        elif parameters['cohort_frequency'] == 'monthly':
+            time_freq = 'monthly_battleTime'
+            user_activity = user_activity.withColumn('monthly_battleTime',
+                                                     f.trunc('battleTime', 'month'))
+        # Construct the cohort on a daily basis (default)
+        else:
+            time_freq = 'battleTime'
+    else:
+        time_freq = 'battleTime'
 
-    # Construct the cohort on a weekly basis
-    user_activity = user_activity.withColumn('weekly_battleTime',
-                                             f.date_sub(f.next_day('battleTime', 'Monday'), 7))
+    # PLACE COHORT LOOP HERE AND PLACE THE ORDER BY AT THE VERY END, THE COHORT IS ALREADY SEGMENTED PER DATE
 
-    # Construct the cohort on a monthly basis
-    user_activity = user_activity.withColumn('monthly_battleTime',
-                                             f.trunc('battleTime','month'))
-
-    # Find the first day when each player register a session per cohort
-
-    time_freq = 'monthly_battleTime'  # 'monthly_battleTime','weekly_battleTime','battleTime'
     # Create a window by each one of the player windows and order them ascending per log time
     player_window = (Window.partitionBy(['player_id'])
                             .orderBy(f.col(time_freq).asc()))
-    # Find the first logged date per user in the cohort
+
+    # Find the first logged date per player in the cohort
     user_activity = user_activity.withColumn('first_log',
                                              f.min(time_freq).over(player_window))
+
     # Find days passed to see player return
     user_activity = user_activity.withColumn('days_to_return',
                                              f.datediff(time_freq,'first_log'))
+
     # Count players with the same "first_log" and "days_to_return"
-    user_activity = (user_activity.groupBy(['first_log','days_to_return'])
-                                    .agg(f.count('player_id').alias('player_count')))
+    user_activity = (user_activity.select('player_id','first_log','days_to_return','daily_sessions')
+                                    .withColumn('player_count', f.lit(1)))
+
     # Pivot data from long format to wide
-    user_activity = (user_activity.groupBy(['first_log'])
+    user_activity = (user_activity.groupBy(['player_id', 'first_log'])
                                     .pivot('days_to_return')
-                                    .agg(f.first('player_count'))
-                                    .orderBy(['first_log'])
+                                    .agg(f.sum('player_count').alias('day'),
+                                         f.sum('daily_sessions').alias('day_sessions'))
                      )
+
+    # Extract daily activity columns, save as arrays of column objects
+    day_cohort_col = user_activity.select(user_activity.colRegex("`.+_day$`")).columns
+    day_cohort_col = f.array(*map(f.col, day_cohort_col))
+
+    # Extract daily sessions counter columns, save as arrays of column objects
+    day_sessions_col = user_activity.select(user_activity.colRegex("`.+_day_sessions$`")).columns
+    day_sessions_col = f.array(*map(f.col, day_sessions_col))
+
+    # Empty list to allocate final columns
+    cols_retention = []
+
+    # Produce retention metrics and session counters
+    for day in parameters['retention_days']:
+        # Define column names
+        DDR = f'D{day}R'
+        DDTS = f'D{day}_N_Sessions'
+        # Obtain retention for a given day
+        user_activity = user_activity.withColumn(DDR, retention_metric(day_cohort_col, f.lit(day)))
+        # Obtain total of sessions until given day
+        user_activity = (user_activity.withColumn(DDTS, sessions_sum(day_sessions_col, f.lit(day)))
+                                      .withColumn(DDTS, f.when(f.col(DDR) == 0, None).otherwise(f.col(DDTS)))
+                         )
+        # Append final columns
+        cols_retention.append(DDR)
+        cols_retention.append(DDTS)
+
+    # Final formatting
+    standard_columns = ['player_id','first_log']
+    standard_columns.extend(cols_retention)
+    user_activity = (user_activity.select(*standard_columns)
+                                  .orderBy(['first_log']))
+
+    user_activity.show(truncate= False)
 
     return user_activity

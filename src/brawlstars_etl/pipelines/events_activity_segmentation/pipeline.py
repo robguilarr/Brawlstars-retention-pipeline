@@ -11,14 +11,14 @@ def create_pipeline(**kwargs) -> Pipeline:
         [
             node(
                 func=battlelogs_deconstructor,
-                inputs=['battlelogs_filtered_data@pyspark','params:events_activity_segmentation'],
+                inputs=['battlelogs_filtered_data@pyspark','params:battlelogs_deconstructor'],
                 outputs=['event_solo_data@pyspark', 'event_duo_data@pyspark',
                          'event_3v3_data@pyspark', 'event_special_data@pyspark'],
                 name='battlelogs_deconstructor_node'
             ),
             node(
                 func= activity_transformer,
-                inputs=['battlelogs_filtered_data@pyspark', 'params:events_activity_segmentation'],
+                inputs=['battlelogs_filtered_data@pyspark', 'params:activity_transformer'],
                 outputs= 'user_activity@pyspark',
                 name='activity_transformer_node'
             )
