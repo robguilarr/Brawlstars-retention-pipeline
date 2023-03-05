@@ -9,9 +9,12 @@ from typing import Dict
 # Spark SQL API
 import pyspark.sql
 from pyspark.sql import SparkSession
+from pyspark.sql import DataFrame
 import pyspark.sql.functions as f
 import pyspark.sql.types as t
 from pyspark.sql.window import Window
+# Aggregation functions
+from functools import reduce
 
 
 def _group_exploder_solo(event_solo_data: pyspark.sql.DataFrame,
@@ -299,22 +302,34 @@ def sessions_sum(daily_sessions_list, day):
 def activity_transformer(battlelogs_filtered: pyspark.sql.DataFrame,
                          parameters: Dict
 ) -> pyspark.sql.DataFrame:
-
+    '''
+    Converts the filtered battle logs into a wrapped format data frame, taking a set
+    of parameters such as days, to extract the retention (and the number of sessions).
+    Performance detail: The Cohort transformation skips exhaustive intermediate transformations,
+    such as 'Sort', since the user can insert many cohorts as they occur in the preprocessing stage,
+    causing excessive partitioning.
+    Args:
+        battlelogs_filtered: Filtered Pyspark DataFrame containing only cohorts and features required for the study
+        parameters: Frequency of the cohort and days to extract for the output
+    Returns:
+        Pyspark dataframe with retention metrics and n-sessions at the player level of granularity.
+    '''
+    # Aggregate user activity data to get daily number of sessions
     user_activity = (battlelogs_filtered.select('cohort','battleTime','player_id')
                                         .groupBy('cohort','battleTime','player_id').count()
                                         .withColumnRenamed('count','daily_sessions')
                      )
-
+    # Validate Cohort Frequency, default to 'daily'
     if parameters['cohort_frequency'] and isinstance(parameters['cohort_frequency'], str):
         # Construct the cohort on a weekly basis
         if parameters['cohort_frequency'] == 'weekly':
             time_freq = 'weekly_battleTime'
-            user_activity = user_activity.withColumn('weekly_battleTime',
+            user_activity = user_activity.withColumn(time_freq,
                                                      f.date_sub(f.next_day('battleTime', 'Monday'), 7))
         # Construct the cohort on a monthly basis
         elif parameters['cohort_frequency'] == 'monthly':
             time_freq = 'monthly_battleTime'
-            user_activity = user_activity.withColumn('monthly_battleTime',
+            user_activity = user_activity.withColumn(time_freq,
                                                      f.trunc('battleTime', 'month'))
         # Construct the cohort on a daily basis (default)
         else:
@@ -322,11 +337,8 @@ def activity_transformer(battlelogs_filtered: pyspark.sql.DataFrame,
     else:
         time_freq = 'battleTime'
 
-    # PLACE COHORT LOOP HERE AND PLACE THE ORDER BY AT THE VERY END, THE COHORT IS ALREADY SEGMENTED PER DATE
-
-    # Create a window by each one of the player windows and order them ascending per log time
-    player_window = (Window.partitionBy(['player_id'])
-                            .orderBy(f.col(time_freq).asc()))
+    # Create a window by each one of the player's window
+    player_window = Window.partitionBy(['player_id'])
 
     # Find the first logged date per player in the cohort
     user_activity = user_activity.withColumn('first_log',
@@ -336,49 +348,59 @@ def activity_transformer(battlelogs_filtered: pyspark.sql.DataFrame,
     user_activity = user_activity.withColumn('days_to_return',
                                              f.datediff(time_freq,'first_log'))
 
-    # Count players with the same "first_log" and "days_to_return"
-    user_activity = (user_activity.select('player_id','first_log','days_to_return','daily_sessions')
+    # Subset required columns and add counter variable to aggregate number of player further
+    user_activity = (user_activity.select('cohort','player_id','first_log','days_to_return','daily_sessions')
                                     .withColumn('player_count', f.lit(1)))
 
-    # Pivot data from long format to wide
-    user_activity = (user_activity.groupBy(['player_id', 'first_log'])
-                                    .pivot('days_to_return')
-                                    .agg(f.sum('player_count').alias('day'),
-                                         f.sum('daily_sessions').alias('day_sessions'))
-                     )
+    # List cohorts, iterate over them and append them to the final output
+    cohort_list = [row.cohort for row in user_activity.select('cohort').distinct().collect()]
+    output_range = []
 
-    # Extract daily activity columns, save as arrays of column objects
-    day_cohort_col = user_activity.select(user_activity.colRegex("`.+_day$`")).columns
-    day_cohort_col = f.array(*map(f.col, day_cohort_col))
+    for cohort in cohort_list:
+        # Filter only data of the cohort in process
+        tmp_user_activity = user_activity.filter(f.col('cohort') == cohort)
 
-    # Extract daily sessions counter columns, save as arrays of column objects
-    day_sessions_col = user_activity.select(user_activity.colRegex("`.+_day_sessions$`")).columns
-    day_sessions_col = f.array(*map(f.col, day_sessions_col))
+        # Pivot data from long format to wide
+        tmp_user_activity = (tmp_user_activity.groupBy(['player_id', 'first_log'])
+                                                .pivot('days_to_return')
+                                                .agg(f.sum('player_count').alias('day'),
+                                                     f.sum('daily_sessions').alias('day_sessions')))
 
-    # Empty list to allocate final columns
-    cols_retention = []
+        # Extract daily activity columns, save as arrays of column objects
+        day_cohort_col = tmp_user_activity.select(tmp_user_activity.colRegex("`.+_day$`")).columns
+        day_cohort_col = f.array(*map(f.col, day_cohort_col))
 
-    # Produce retention metrics and session counters
-    for day in parameters['retention_days']:
-        # Define column names
-        DDR = f'D{day}R'
-        DDTS = f'D{day}_N_Sessions'
-        # Obtain retention for a given day
-        user_activity = user_activity.withColumn(DDR, retention_metric(day_cohort_col, f.lit(day)))
-        # Obtain total of sessions until given day
-        user_activity = (user_activity.withColumn(DDTS, sessions_sum(day_sessions_col, f.lit(day)))
-                                      .withColumn(DDTS, f.when(f.col(DDR) == 0, None).otherwise(f.col(DDTS)))
-                         )
-        # Append final columns
-        cols_retention.append(DDR)
-        cols_retention.append(DDTS)
+        # Extract daily sessions counter columns, save as arrays of column objects
+        day_sessions_col = tmp_user_activity.select(tmp_user_activity.colRegex("`.+_day_sessions$`")).columns
+        day_sessions_col = f.array(*map(f.col, day_sessions_col))
 
-    # Final formatting
-    standard_columns = ['player_id','first_log']
-    standard_columns.extend(cols_retention)
-    user_activity = (user_activity.select(*standard_columns)
-                                  .orderBy(['first_log']))
+        # Empty list to allocate final columns
+        cols_retention = []
 
-    user_activity.show(truncate= False)
+        # Produce retention metrics and session counters
+        for day in parameters['retention_days']:
+            # Define column names
+            DDR = f'D{day}R'
+            DDTS = f'D{day}_Sessions'
+            # Obtain retention for a given day
+            tmp_user_activity = tmp_user_activity.withColumn(DDR, retention_metric(day_cohort_col, f.lit(day)))
+            # Obtain total of sessions until given day
+            tmp_user_activity = (tmp_user_activity.withColumn(DDTS, sessions_sum(day_sessions_col, f.lit(day)))
+                                          .withColumn(DDTS, f.when(f.col(DDR) != 1, 0).otherwise(f.col(DDTS))))
+            # Append final columns
+            cols_retention.append(DDR)
+            cols_retention.append(DDTS)
+
+        # Final formatting
+        standard_columns = ['player_id','first_log']
+        standard_columns.extend(cols_retention)
+        tmp_user_activity = tmp_user_activity.select(*standard_columns)
+
+        # Append cohort's user activity data to final list
+        output_range.append(tmp_user_activity)
+
+    # Reduce all dataframe to overwrite original
+    user_activity = reduce(DataFrame.unionAll, output_range)
+    user_activity = user_activity.orderBy(['first_log'])
 
     return user_activity
