@@ -4,7 +4,7 @@ generated using Kedro 0.18.4
 """
 
 from kedro.pipeline import Pipeline, node, pipeline
-from .nodes import battlelogs_deconstructor, activity_transformer
+from .nodes import battlelogs_deconstructor, activity_transformer, ratio_register
 
 def create_pipeline(**kwargs) -> Pipeline:
     events_activity_segmentation = pipeline(
@@ -21,9 +21,14 @@ def create_pipeline(**kwargs) -> Pipeline:
                 inputs=['battlelogs_filtered_data@pyspark', 'params:activity_transformer'],
                 outputs= 'user_activity@pyspark',
                 name='activity_transformer_node'
+            ),
+            node(
+                func=ratio_register,
+                inputs=['user_activity@pyspark',
+                        'params:ratio_register', 'params:activity_transformer'],
+                outputs='cohort_activity@pyspark',
+                name='ratio_register_node'
             )
-
         ]
     )
-
     return events_activity_segmentation

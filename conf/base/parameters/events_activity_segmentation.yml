@@ -34,3 +34,15 @@ activity_transformer:
     - 7
     - 14
     - 28
+
+ratio_register:
+  ratios:
+    - (1,0)
+    - (3,0)
+    - (7,0)
+    - (14,0)
+    - (28,0)
+  analytical_ratios:
+    - (3,1)
+    - (7,3)
+    - (28,7)

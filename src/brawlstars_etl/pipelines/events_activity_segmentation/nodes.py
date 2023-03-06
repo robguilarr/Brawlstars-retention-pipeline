@@ -15,6 +15,7 @@ import pyspark.sql.types as t
 from pyspark.sql.window import Window
 # Aggregation functions
 from functools import reduce
+from ast import literal_eval
 
 
 def _group_exploder_solo(event_solo_data: pyspark.sql.DataFrame,
@@ -314,6 +315,9 @@ def activity_transformer(battlelogs_filtered: pyspark.sql.DataFrame,
     Returns:
         Pyspark dataframe with retention metrics and n-sessions at the player level of granularity.
     '''
+    # Call | Create Spark Session
+    spark = SparkSession.builder.getOrCreate()
+
     # Aggregate user activity data to get daily number of sessions
     user_activity = (battlelogs_filtered.select('cohort','battleTime','player_id')
                                         .groupBy('cohort','battleTime','player_id').count()
@@ -404,3 +408,71 @@ def activity_transformer(battlelogs_filtered: pyspark.sql.DataFrame,
     user_activity = user_activity.orderBy(['first_log'])
 
     return user_activity
+
+
+def _ratio_days_availabilty(ratios: list,
+                            days_available: list):
+    '''Void function to validate days requested in ratios to generate, are present
+    in the retention days extracted'''
+    for num,den in ratios:
+        if (num not in days_available) or (den not in days_available):
+            log.warning(f'Days requested in "ratios" parameter are not present in'
+                        f' days extracted from "Activity Transformer Node". '
+                        f'If not working, try running "activity_transformer_node" again and check {num} and {den} '
+                        f'are present in "retention_days" parameters')
+            raise
+    log.info("Retention days validation passed")
+
+@f.udf(returnType= t.FloatType())
+def ratio_agg(ret_num, ret_den):
+    '''Validate ratio aggregation won't produce a division error'''
+    if ret_den != 0 and ret_den != None:
+        return float(ret_num)/float(ret_den)
+    else:
+        return float(0)
+
+def ratio_register(user_activity: pyspark.sql.DataFrame,
+                   params_rat_reg: Dict,
+                   params_act_tran: Dict
+) -> pyspark.sql.DataFrame:
+    # Call | Create Spark Session
+    spark = SparkSession.builder.getOrCreate()
+
+    # Request parameters to validate
+    days_available = params_act_tran['retention_days']
+    ratios = [literal_eval(ratio) for ratio in params_rat_reg['ratios']]
+
+    # Validate day labels are present in parameters
+    _ratio_days_availabilty(ratios, days_available)
+
+    # Grouping + Renaming multiple columns based on: https://stackoverflow.com/a/74881697
+    retention_columns = [col for col in user_activity.columns if col not in ['player_id', 'first_log']]
+    aggs = [f.expr(f"sum({col}) as {col}") for col in retention_columns]
+    # Apply aggregation
+    cohort_activity = user_activity.groupBy('first_log').agg(*aggs)
+
+    # Obtain basics retention ratios aggregated
+    for ratio in ratios:
+        num, den = ratio
+        ratio_name = f"D{num}R"; ret_num = f"D{num}R"; ret_den = f"D{den}R"
+        cohort_activity = cohort_activity.withColumn(ratio_name,
+                                                  ratio_agg(f.col(ret_num), f.col(ret_den)))
+
+    # Obtain analytical ratios if them were defined in the parameters
+    if params_rat_reg['analytical_ratios'] and isinstance(params_rat_reg['analytical_ratios'], list):
+        # Request parameters to validate
+        analytical_ratios = [literal_eval(ratio) for ratio in params_rat_reg['analytical_ratios']]
+        # Validate day labels are present in parameters
+        _ratio_days_availabilty(analytical_ratios, days_available)
+        # Obtain basics retention ratios aggregated
+        for ratio in analytical_ratios:
+            num, den = ratio
+            ratio_name = f"D{num}/D{den}"; ret_num = f"D{num}R"; ret_den = f"D{den}R"
+            cohort_activity = cohort_activity.withColumn(ratio_name,
+                                                       ratio_agg(f.col(ret_num), f.col(ret_den)))
+    else:
+        log.info("No analytical ratios were defined")
+
+    #cohort_activity.show(truncate=True)
+
+    return cohort_activity

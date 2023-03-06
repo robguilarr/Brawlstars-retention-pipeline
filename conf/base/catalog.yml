@@ -76,5 +76,13 @@ user_activity@pyspark:
   filepath: ${data.enriched_data}/user_activity.parquet
 
 user_activity@pandas:
-  <<: *pyspark
+  <<: *pandas
   filepath: ${data.enriched_data}/user_activity.csv
+
+cohort_activity@pyspark:
+  <<: *pyspark
+  filepath: ${data.curated_data}/cohort_activity.parquet
+
+cohort_activity@pandas:
+  <<: *pandas
+  filepath: ${data.curated_data}/cohort_activity.csv
