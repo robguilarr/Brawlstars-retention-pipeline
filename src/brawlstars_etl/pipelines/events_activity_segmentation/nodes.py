@@ -268,23 +268,30 @@ def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame,
 def retention_metric(days_activity_list, day):
     '''User Defined Function to return the user-retention
      given the definition given by the parameter'''
-    # Subset columns of days needed
+    # list of 224
+    # Maximum day retained extraction
+    for i in reversed(range(len(days_activity_list))):
+        if days_activity_list[i] == 1:
+            max_day_ret = i
+            break
+    # Subset columns of days needed for evaluation
     days_activity = days_activity_list[:day + 1]
-    # When day is 0 return the same value
-    if day == 0:
-        if days_activity[0] == 1:
-            return 1
-        else:
-            return 0
-    # Evaluate the day of retention is on the data, otherwise return 0
-    elif day > len(days_activity):
+    # If player never installed the game
+    if days_activity[0] != 1:
         return 0
+    # If user returned after more days than the one evaluated
+    elif day <= max_day_ret:
+        return 1
     else:
-        # Evaluate user installed the app and return on the specific day
-        if days_activity[0] == 1 and days_activity[-1] == 1:
-            return 1
-        else:
+        # Evaluate the day of retention is on the data, otherwise return 0
+        if day > len(days_activity):
             return 0
+        else:
+            # Evaluate user installed the app and return on the specific day
+            if days_activity[0] == 1 and days_activity[-1] == 1:
+                return 1
+            else:
+                return 0
 
 @f.udf(returnType= t.IntegerType())
 def sessions_sum(daily_sessions_list, day):

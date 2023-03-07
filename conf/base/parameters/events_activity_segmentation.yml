@@ -4,6 +4,7 @@
 # Documentation for this file format can be found in "Parameters"
 # Link: https://kedro.readthedocs.io/en/0.18.4/kedro_project_setup/configuration.html#parameters
 
+# ----- Parameters to deconstruct the data by event ----
 battlelogs_deconstructor:
   event_solo: ['soloShowdown']
   event_duo: ['duoShowdown']
@@ -25,6 +26,7 @@ battlelogs_deconstructor:
     - 'battle_trophyChange'
     - 'battle_level_name'
 
+# ----- Parameters to extract activity day per user ----
 activity_transformer:
   cohort_frequency: daily
   retention_days:
@@ -35,6 +37,7 @@ activity_transformer:
     - 14
     - 28
 
+# ----- Parameters to aggregate retention metrics ----
 ratio_register:
   ratios:
     - (1,0)
