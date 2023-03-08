@@ -207,7 +207,7 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
                     'cohort. Check the parameters defined')
         raise
 
-    # Create hierarchical ID
+    # Create hierarchical ID (in case the code breaks increase default-parl to 100)
     battlelogs_filtered = battlelogs_filtered.withColumn('battlelog_id', f.monotonically_increasing_id())
 
     return battlelogs_filtered
