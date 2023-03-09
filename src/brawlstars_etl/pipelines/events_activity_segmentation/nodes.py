@@ -412,7 +412,6 @@ def activity_transformer(battlelogs_filtered: pyspark.sql.DataFrame,
 
     # Reduce all dataframe to overwrite original
     user_activity = reduce(DataFrame.unionAll, output_range)
-    user_activity = user_activity.orderBy(['first_log'])
 
     return user_activity
 
@@ -480,6 +479,7 @@ def ratio_register(user_activity: pyspark.sql.DataFrame,
     else:
         log.info("No analytical ratios were defined")
 
-    #cohort_activity.show(truncate=True)
+    # Reorganization per log date
+    cohort_activity = cohort_activity.orderBy(['first_log'])
 
     return cohort_activity
