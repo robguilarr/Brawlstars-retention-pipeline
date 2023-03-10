@@ -99,7 +99,7 @@ def battlelogs_request(player_tags_txt: str,
             # For sampling purposes
             raw_battlelogs = asyncio.run(spawn_request(player_tags_txt[:n]))
         else:
-            # For running entire batches
+            # For running entire batches (prevent being rate-limited)
             split_tags = np.array_split(player_tags_txt, len(player_tags_txt) / 10)
             for batch in split_tags:
                 raw_battlelogs_tmp = asyncio.run(spawn_request(batch))

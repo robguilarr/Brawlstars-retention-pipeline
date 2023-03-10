@@ -5,6 +5,7 @@ generated using Kedro 0.18.4
 # General dependencies
 import pandas as pd
 import brawlstats
+import numpy as np
 # Parameters definitions
 from typing import Any, Dict, Tuple
 # To load the configuration (https://kedro.readthedocs.io/en/stable/kedro_project_setup/configuration.html#credentials)
@@ -70,7 +71,7 @@ def players_info_request(player_tags_txt: str,
     async def spawn_request(player_tags: list) -> pd.DataFrame:
         '''Use gathering to request player metadata as async tasks objects, made of coroutines'''
         start = time.time()
-        log.info(f"PLayer info request process started")
+        log.info(f"Player info request process started")
         # Comprehensive list of coroutines as Task Objects, whom will be already scheduled its execution
         requests_tasks = [asyncio.create_task(api_request_async(tag)) for tag in player_tags]
         # Future Object: List of battlelogs as Dataframes
@@ -82,10 +83,21 @@ def players_info_request(player_tags_txt: str,
 
     def activate_request(n: int = None) -> pd.DataFrame:
         '''Run the events-loop, check for request limit defined by user'''
+        raw_metadata = pd.DataFrame()
         if n:
+            # For sampling purposes
             player_metadata = asyncio.run(spawn_request(player_tags_txt[:n]))
         else:
+            # For running entire batches (prevent being rate-limited)
+            split_tags = np.array_split(player_tags_txt, len(player_tags_txt) / 5)
+            for batch in split_tags:
+                raw_metadata_tmp = asyncio.run(spawn_request(batch))
+                try:
+                    raw_metadata = pd.concat([raw_metadata,raw_metadata_tmp], ignore_index=True)
+                except:
+                    pass
             player_metadata = asyncio.run(spawn_request(player_tags_txt))
+
         return player_metadata
 
     player_metadata = activate_request(n= parameters['metadata_limit'])

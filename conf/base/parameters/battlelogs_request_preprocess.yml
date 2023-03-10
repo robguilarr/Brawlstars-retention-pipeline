@@ -6,14 +6,11 @@
 
 # ----- Parameters for logs request ----
 battlelogs_request:
-
   battlelogs_limit:
 
 # ----- Parameters for preprocessing and filtering ----
 battlelogs_filter:
-
   exclude_missing_events: true
-
   cohort_time_range:
     - ("2019-10-11","2020-04-10")
     - ("2020-04-11","2020-10-10")
@@ -23,7 +20,6 @@ battlelogs_filter:
     - ("2022-04-11","2022-10-10")
     - ("2022-10-11","2023-04-10")
     - ("2023-04-11","2023-10-10")
-
   raw_battlelogs_schema:
     - "battleTime STRING, 
        event_id BIGINT, 
