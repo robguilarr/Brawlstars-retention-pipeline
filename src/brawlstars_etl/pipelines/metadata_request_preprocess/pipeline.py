@@ -10,9 +10,9 @@ def create_pipeline(**kwargs) -> Pipeline:
         [
             node(
                 func=players_info_request,
-                inputs=['player_tags_txt','params:players_info_request'],
-                outputs='raw_players_info@pandas',
-                name='players_info_request_node'
+                inputs=['player_tags_txt','params:player_metadata_request'],
+                outputs='player_metadata@pandas',
+                name='player_metadata_request_node'
             )
         ]
     )

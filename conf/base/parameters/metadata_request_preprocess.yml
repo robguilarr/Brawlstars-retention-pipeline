@@ -5,7 +5,7 @@
 # Link: https://kedro.readthedocs.io/en/0.18.4/kedro_project_setup/configuration.html#parameters
 
 # ----- Parameters for info request ----
-players_info_request:
+player_metadata_request:
   metadata_limit:
 
 # ----- Parameters for format request ----

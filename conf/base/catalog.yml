@@ -35,9 +35,9 @@ battlelogs_filtered_data@pyspark:
   <<: *pyspark
   filepath: ${data.raw_battlelogs}/battlelogs_filtered.parquet
 
-raw_players_info_data@pandas:
+player_metadata@pandas:
   <<: *pandas
-  filepath: ${data.raw_metadata}/raw_players_info.csv
+  filepath: ${data.raw_metadata}/player_metadata.csv
 
 event_solo_data@pyspark:
   <<: *pyspark
