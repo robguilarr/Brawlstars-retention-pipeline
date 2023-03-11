@@ -78,29 +78,29 @@ def players_info_request(player_tags_txt: str,
         player_metadata_list = await asyncio.gather(*requests_tasks)
         # When all tasks all executed, concat all dataframes into one
         player_metadata = pd.concat(player_metadata_list, ignore_index=True)
-        log.info(f"PLayer info request process Finished in {time.time() - start} seconds")
+        log.info(f"Player info request process Finished in {time.time() - start} seconds")
         return player_metadata
 
     def activate_request(n: int = None) -> pd.DataFrame:
         '''Run the events-loop, check for request limit defined by user'''
-        raw_metadata = pd.DataFrame()
+        player_metadata = pd.DataFrame()
         if n:
             # For sampling purposes
             player_metadata = asyncio.run(spawn_request(player_tags_txt[:n]))
         else:
             # For running entire batches (prevent being rate-limited)
-            split_tags = np.array_split(player_tags_txt, len(player_tags_txt) / 5)
+            split_tags = np.array_split(player_tags_txt, len(player_tags_txt) / 10)
             for batch in split_tags:
-                raw_metadata_tmp = asyncio.run(spawn_request(batch))
+                player_metadata_tmp = asyncio.run(spawn_request(batch))
                 try:
-                    raw_metadata = pd.concat([raw_metadata,raw_metadata_tmp], ignore_index=True)
+                    player_metadata = pd.concat([player_metadata, player_metadata_tmp],
+                                                axis=0, ignore_index=True)
                 except:
                     pass
-            player_metadata = asyncio.run(spawn_request(player_tags_txt))
 
         return player_metadata
 
-    player_metadata = activate_request(n= parameters['metadata_limit'])
+    player_metadata = activate_request(n=parameters['metadata_limit'])
 
     # Validate concurrency didn't affect the data request
     try:

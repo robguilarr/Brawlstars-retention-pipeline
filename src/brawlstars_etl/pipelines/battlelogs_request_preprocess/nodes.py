@@ -104,13 +104,14 @@ def battlelogs_request(player_tags_txt: str,
             for batch in split_tags:
                 raw_battlelogs_tmp = asyncio.run(spawn_request(batch))
                 try:
-                    raw_battlelogs = pd.concat([raw_battlelogs,raw_battlelogs_tmp], ignore_index=True)
+                    raw_battlelogs = pd.concat([raw_battlelogs, raw_battlelogs_tmp],
+                                               axis=0, ignore_index=True)
                 except:
                     pass
 
         return raw_battlelogs
 
-    raw_battlelogs = activate_request(n= parameters['battlelogs_limit'])
+    raw_battlelogs = activate_request(n=parameters['battlelogs_limit'])
 
     # Replace dots in column names
     raw_battlelogs.columns = [col_name.replace('.','_') for col_name in raw_battlelogs.columns]
