@@ -38,7 +38,7 @@ def battlelogs_request(player_tags_txt: str,
     Extracts Battlelogs from Brawlstars API by executing an Async Event Loop over a list of futures objects. These are
     made of task objects built of Async threads due blocking call limitations of api_request sub_module.
     Args:
-        player_tags_txt: PLayer tag list
+        player_tags_txt: Player tag list
     Returns:
         All players battlelogs concatenated into a structured Dataframe
     '''
@@ -136,7 +136,7 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
     Stars API, then transforms it to java.util.GregorianCalendar (low-level date format) for Spark processing.
     Args:
         raw_battlelogs: All players battlelogs concatenated into a structured Dataframe
-        parameters[cohort_time_range]: Time range(s) to subset
+        parameters[cohort_time_range]: Time range(s) to subset and DDL schema
     Returns:
         Filtered Pyspark DataFrame containing only cohorts and features required for the study
     '''
@@ -146,7 +146,7 @@ def battlelogs_filter(raw_battlelogs: pd.DataFrame,
     # Ingest battlelogs data and validate against DDL schema
     try:
         battlelogs_filtered = spark.createDataFrame(data= raw_battlelogs,
-                                                  schema= parameters['raw_battlelogs_schema'][0])
+                                                    schema= parameters['raw_battlelogs_schema'][0])
         # Convert strings of lists as Arrays of dictionaries
         battlelogs_filtered = (battlelogs_filtered.withColumn('battle_teams', f.from_json('battle_teams',
                                                                                           t.ArrayType(t.StringType())))

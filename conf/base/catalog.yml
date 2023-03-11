@@ -39,6 +39,10 @@ player_metadata@pandas:
   <<: *pandas
   filepath: ${data.raw_metadata}/player_metadata.csv
 
+metadata_prep@pyspark:
+  <<: *pyspark
+  filepath: ${data.raw_metadata}/metadata_prep.parquet
+
 event_solo_data@pyspark:
   <<: *pyspark
   filepath: ${data.enriched_data}/event_types_data/event_solo_data.parquet
