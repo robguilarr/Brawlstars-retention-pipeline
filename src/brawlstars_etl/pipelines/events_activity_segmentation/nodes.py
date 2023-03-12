@@ -23,7 +23,6 @@ def _group_exploder_solo(event_solo_data: pyspark.sql.DataFrame,
 ) -> pyspark.sql.DataFrame:
     '''Helper function to subset solo-events information
      from dictionary-formatted columns'''
-
     try:
         # Explode list of player dictionaries as StringTypes
         event_solo_data = event_solo_data.withColumn('battle_players', f.explode('battle_players'))
@@ -46,7 +45,8 @@ def _group_exploder_solo(event_solo_data: pyspark.sql.DataFrame,
                                                f.collect_list('brawler').alias('brawlers_collection')))
     except Exception as e:
         log.exception(e)
-        log.warning("-- Exploder broken: Check 'battle_players' column has a consistent structure according API specs --")
+        log.warning("-- Exploder broken: Check 'battle_players' column has a "
+                    "consistent structure according API specs --")
         standard_columns.extend(['battle_players'])
         event_solo_data = (event_solo_data.select(*standard_columns)
                                           .withColumn('players_collection',
@@ -61,7 +61,6 @@ def _group_exploder_duo(event_duo_data: pyspark.sql.DataFrame,
 ) -> pyspark.sql.DataFrame:
     '''Helper function to subset duo-events information
      from dictionary-formatted columns'''
-
     try:
         # Explode all teams (list of duos) as StringTypes
         event_duo_data = event_duo_data.withColumn('battle_teams', f.explode('battle_teams'))
@@ -114,7 +113,6 @@ def _group_exploder_3v3(event_3v3_data: pyspark.sql.DataFrame,
 ) -> pyspark.sql.DataFrame:
     '''Helper function to subset 3v3 events information
      from dictionary-formatted columns'''
-
     try:
         # Explode the two teams (3v3) as StringTypes
         event_3v3_data = event_3v3_data.withColumn('battle_teams', f.explode('battle_teams'))
@@ -177,7 +175,6 @@ def _group_exploder_special(event_special_data: pyspark.sql.DataFrame,
     '''Helper function to subset special events information
      from dictionary-formatted columns
      '''
-
     try:
         # Explode the list of team players as StringTypes
         event_special_data = event_special_data.withColumn('battle_players', f.explode('battle_players'))
@@ -224,7 +221,7 @@ def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame,
         battlelogs_filtered: Filtered Pyspark DataFrame containing only cohorts and features required
         parameters: Event types defined by the user to include in the subset process
     Returns:
-        Four Pyspark dataframes containing only one event type each
+        Four Pyspark dataframes containing only one event type each.
     '''
     # Call | Create Spark Session
     spark = SparkSession.builder.getOrCreate()
@@ -268,7 +265,6 @@ def battlelogs_deconstructor(battlelogs_filtered: pyspark.sql.DataFrame,
 def retention_metric(days_activity_list, day):
     '''User Defined Function to return the user-retention
      given the definition given by the parameter'''
-    # list of 224
     # Maximum day retained extraction
     for i in reversed(range(len(days_activity_list))):
         if days_activity_list[i] == 1:
@@ -411,9 +407,9 @@ def activity_transformer(battlelogs_filtered: pyspark.sql.DataFrame,
         output_range.append(tmp_user_activity)
 
     # Reduce all dataframe to overwrite original
-    user_activity = reduce(DataFrame.unionAll, output_range)
+    user_activity_data = reduce(DataFrame.unionAll, output_range)
 
-    return user_activity
+    return user_activity_data
 
 
 def _ratio_days_availabilty(ratios: list,
@@ -422,7 +418,7 @@ def _ratio_days_availabilty(ratios: list,
     in the retention days extracted'''
     for num,den in ratios:
         if (num not in days_available) or (den not in days_available):
-            log.warning(f'Days requested in "ratios" parameter are not present in'
+            log.warning(f'Days requested in "ratios" parameter are not present in the'
                         f' days extracted from "Activity Transformer Node". '
                         f'If not working, try running "activity_transformer_node" again and check {num} and {den} '
                         f'are present in "retention_days" parameters')
@@ -441,6 +437,16 @@ def ratio_register(user_activity: pyspark.sql.DataFrame,
                    params_rat_reg: Dict,
                    params_act_tran: Dict
 ) -> pyspark.sql.DataFrame:
+    '''
+    Takes Activity per Day from the "activity_transformer_node" (E.G: columns DXR), builds retention ratios per
+    day using a bounded retention calculation.
+    Args:
+        user_activity: Pyspark dataframe with retention metrics and n-sessions at the player level of granularity
+        params_rat_reg: Parameters to aggregate retention metrics, based on User inputs
+        params_act_tran: Parameters to extract activity day per user, based on User inputs
+    Returns:
+        Pyspark dataframe with bounded retention ratios aggregated.
+    '''
     # Call | Create Spark Session
     spark = SparkSession.builder.getOrCreate()
 
@@ -455,16 +461,16 @@ def ratio_register(user_activity: pyspark.sql.DataFrame,
     retention_columns = [col for col in user_activity.columns if col not in ['player_id', 'first_log']]
     aggs = [f.expr(f"sum({col}) as {col}") for col in retention_columns]
     # Apply aggregation
-    cohort_activity = user_activity.groupBy('first_log').agg(*aggs)
+    cohort_activity_data = user_activity.groupBy('first_log').agg(*aggs)
 
     # Obtain basics retention ratios aggregated
     for ratio in ratios:
         num, den = ratio
         ratio_name = f"D{num}R"; ret_num = f"D{num}R"; ret_den = f"D{den}R"
-        cohort_activity = cohort_activity.withColumn(ratio_name,
-                                                  ratio_agg(f.col(ret_num), f.col(ret_den)))
+        cohort_activity_data = cohort_activity_data.withColumn(ratio_name,
+                                                               ratio_agg(f.col(ret_num), f.col(ret_den)))
 
-    # Obtain analytical ratios if them were defined in the parameters
+    # Obtain analytical ratios if them were defined in the parameters (ratio register)
     if params_rat_reg['analytical_ratios'] and isinstance(params_rat_reg['analytical_ratios'], list):
         # Request parameters to validate
         analytical_ratios = [literal_eval(ratio) for ratio in params_rat_reg['analytical_ratios']]
@@ -474,12 +480,12 @@ def ratio_register(user_activity: pyspark.sql.DataFrame,
         for ratio in analytical_ratios:
             num, den = ratio
             ratio_name = f"D{num}/D{den}"; ret_num = f"D{num}R"; ret_den = f"D{den}R"
-            cohort_activity = cohort_activity.withColumn(ratio_name,
-                                                       ratio_agg(f.col(ret_num), f.col(ret_den)))
+            cohort_activity_data = cohort_activity_data.withColumn(ratio_name,
+                                                                   ratio_agg(f.col(ret_num), f.col(ret_den)))
     else:
         log.info("No analytical ratios were defined")
 
     # Reorganization per log date
-    cohort_activity = cohort_activity.orderBy(['first_log'])
+    cohort_activity_data = cohort_activity_data.orderBy(['first_log'])
 
-    return cohort_activity
+    return cohort_activity_data

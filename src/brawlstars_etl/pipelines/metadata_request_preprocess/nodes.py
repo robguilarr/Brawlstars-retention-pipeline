@@ -122,32 +122,32 @@ def players_info_request(player_tags_txt: str,
 
 def metadata_preparation(player_metadata: pd.DataFrame,
                          parameters : Dict
-) -> pd.DataFrame:
+) -> pyspark.sql.DataFrame:
     '''
-    Prepare raw players info metadata into a format adaptable to be processed by Spark. Also exclude non-neccesary
-    data for the present analysis
+    Prepare raw players info metadata into a format adaptable (schema) to be processed by Spark. Also exclude
+    non-neccesary data for the present analysis
     Args:
         player_metadata: All players info concatenated into a structured Dataframe
         parameters: DDL schema
     Returns:
-        Preprocessed Pyspark DataFrame containing useful rows for analysis
+        Preprocessed Pyspark DataFrame containing meaningful rows for analysis
     '''
     # Call | Create Spark Session
     spark = SparkSession.builder.getOrCreate()
 
     # Ingest player metadata data and validate against DDL schema
     try:
-        players_metadata_prep = spark.createDataFrame(data=player_metadata,
-                                                      schema=parameters['metadata_schema'][0])
+        players_metadata_prepared = spark.createDataFrame(data=player_metadata,
+                                                          schema=parameters['metadata_schema'][0])
     except TypeError:
         log.warning('Type error on the DDL schema for the player metadata,'
                     'check "metadata_schema" on the node parameters')
         raise
 
     # Drop seasonal columns & non-descriptive columns ('brawlers' is linked to the analysis type)
-    players_metadata_prep = players_metadata_prep.drop('name', 'nameColor',
-                                                       'isQualifiedFromChampionshipChallenge',
-                                                       'brawlers', 'icon_id',
-                                                       'club_tag', 'club_name')
+    players_metadata_prepared = players_metadata_prepared.drop('name', 'nameColor',
+                                                               'isQualifiedFromChampionshipChallenge', 'brawlers',
+                                                               'icon_id', 'club_tag',
+                                                               'club_name','bestTimeAsBigBrawler')
 
-    return players_metadata_prep
+    return players_metadata_prepared
