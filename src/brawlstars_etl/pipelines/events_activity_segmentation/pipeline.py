@@ -19,14 +19,14 @@ def create_pipeline(**kwargs) -> Pipeline:
             node(
                 func= activity_transformer,
                 inputs=['battlelogs_filtered_data@pyspark', 'params:activity_transformer'],
-                outputs= 'user_activity@pyspark',
+                outputs= 'user_activity_data@pyspark',
                 name='activity_transformer_node'
             ),
             node(
                 func=ratio_register,
-                inputs=['user_activity@pyspark',
+                inputs=['user_activity_data@pyspark',
                         'params:ratio_register', 'params:activity_transformer'],
-                outputs='cohort_activity@pyspark',
+                outputs='cohort_activity_data@pyspark',
                 name='ratio_register_node'
             )
         ]

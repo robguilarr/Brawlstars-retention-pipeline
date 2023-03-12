@@ -4,7 +4,7 @@
 # Link: https://kedro.readthedocs.io/en/stable/data/data_catalog.html
 # Schema mapping: https://raw.githubusercontent.com/kedro-org/kedro/main/static/jsonschema/kedro-catalog-0.18.json
 # Dataset groups: https://github.com/kedro-org/kedro/tree/develop/kedro/extras/datasets
-# @ Symbols added for potential transcoding https://kedro.readthedocs.io/en/stable/data/data_catalog.html#transcode-datasets
+# @ Symbols added for transcoding https://kedro.readthedocs.io/en/stable/data/data_catalog.html#transcode-datasets
 
 _pyspark: &pyspark
   type: spark.SparkDataSet
@@ -39,9 +39,9 @@ player_metadata@pandas:
   <<: *pandas
   filepath: ${data.raw_metadata}/player_metadata.csv
 
-metadata_prep@pyspark:
+metadata_prepared@pyspark:
   <<: *pyspark
-  filepath: ${data.raw_metadata}/metadata_prep.parquet
+  filepath: ${data.raw_metadata}/metadata_prepared.parquet
 
 event_solo_data@pyspark:
   <<: *pyspark
@@ -75,18 +75,18 @@ event_special_data@pandas:
   <<: *pandas
   filepath: ${data.enriched_data}/event_types_data/event_special_data.csv
 
-user_activity@pyspark:
+user_activity_data@pyspark:
   <<: *pyspark
-  filepath: ${data.enriched_data}/user_activity.parquet
+  filepath: ${data.enriched_data}/user_activity_data.parquet
 
-user_activity@pandas:
+user_activity_data@pandas:
   <<: *pandas
-  filepath: ${data.enriched_data}/user_activity.csv
+  filepath: ${data.enriched_data}/user_activity_data.csv
 
-cohort_activity@pyspark:
+cohort_activity_data@pyspark:
   <<: *pyspark
-  filepath: ${data.curated_data}/cohort_activity.parquet
+  filepath: ${data.curated_data}/cohort_activity_data.parquet
 
-cohort_activity@pandas:
+cohort_activity_data@pandas:
   <<: *pandas
-  filepath: ${data.curated_data}/cohort_activity.csv
+  filepath: ${data.curated_data}/cohort_activity_data.csv
