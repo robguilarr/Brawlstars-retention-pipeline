@@ -19,15 +19,21 @@ import logging
 log = logging.getLogger(__name__)
 # Async processes
 import asyncio
+# Spark SQL API
+import pyspark.sql
+from pyspark.sql import SparkSession
+from pyspark.sql import DataFrame
+import pyspark.sql.functions as f
+import pyspark.sql.types as t
 
 def players_info_request(player_tags_txt: str,
                          parameters : Dict
-) -> pd.DataFrame:
+) -> pyspark.sql.DataFrame:
     '''
     Extracts Players metadata from Brawlstars API by executing an Async Event Loop over a list of futures objects.
     These are made of task objects built of Async threads due blocking call limitations of api_request sub_module.
     Args:
-        player_tags: PLayer tag list
+        player_tags: Player tag list
     Returns:
         All players metadata concatenated into a structured Dataframe
     '''
@@ -102,6 +108,9 @@ def players_info_request(player_tags_txt: str,
 
     player_metadata = activate_request(n=parameters['metadata_limit'])
 
+    # Replace dots in column names
+    player_metadata.columns = [col_name.replace('.', '_') for col_name in player_metadata.columns]
+
     # Validate concurrency didn't affect the data request
     try:
         assert not player_metadata.empty
@@ -109,3 +118,36 @@ def players_info_request(player_tags_txt: str,
         log.info("No Metadata was extracted. Please check your Client Connection")
 
     return player_metadata
+
+
+def metadata_preparation(player_metadata: pd.DataFrame,
+                         parameters : Dict
+) -> pd.DataFrame:
+    '''
+    Prepare raw players info metadata into a format adaptable to be processed by Spark. Also exclude non-neccesary
+    data for the present analysis
+    Args:
+        player_metadata: All players info concatenated into a structured Dataframe
+        parameters: DDL schema
+    Returns:
+        Preprocessed Pyspark DataFrame containing useful rows for analysis
+    '''
+    # Call | Create Spark Session
+    spark = SparkSession.builder.getOrCreate()
+
+    # Ingest player metadata data and validate against DDL schema
+    try:
+        players_metadata_prep = spark.createDataFrame(data=player_metadata,
+                                                      schema=parameters['metadata_schema'][0])
+    except TypeError:
+        log.warning('Type error on the DDL schema for the player metadata,'
+                    'check "metadata_schema" on the node parameters')
+        raise
+
+    # Drop seasonal columns & non-descriptive columns ('brawlers' is linked to the analysis type)
+    players_metadata_prep = players_metadata_prep.drop('name', 'nameColor',
+                                                       'isQualifiedFromChampionshipChallenge',
+                                                       'brawlers', 'icon_id',
+                                                       'club_tag', 'club_name')
+
+    return players_metadata_prep
