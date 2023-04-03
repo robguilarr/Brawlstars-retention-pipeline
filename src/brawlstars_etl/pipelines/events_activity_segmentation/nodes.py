@@ -5,7 +5,7 @@ generated using Kedro 0.18.4
 import logging
 from functools import reduce
 from ast import literal_eval
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 import pyspark.sql
 from pyspark.sql import SparkSession
 from pyspark.sql import DataFrame
@@ -143,15 +143,14 @@ def _group_exploder_duo(
             "battle_teams", f.from_json("battle_teams", t.ArrayType(MapStructure))
         )
 
-        # Define number of player in event
-        players_idxs = [1, 2]
-
         # Separate and concatenate the 2 player's tags
-        event_duo_data = _list_player_tags(event_duo_data, players_idxs)
+        event_duo_data = _list_player_tags(
+            event_data=event_duo_data, players_idxs=[1, 2]
+        )
 
         # Separate and concatenate the 2 player's brawlers
         event_duo_data = _list_player_brawlers(
-            MapStructure, event_duo_data, players_idxs
+            MapStructure=MapStructure, event_data=event_duo_data, players_idxs=[1, 2]
         )
 
         # Convert Exploded groups to Spark List object
@@ -197,15 +196,14 @@ def _group_exploder_3v3(
             "battle_teams", f.from_json("battle_teams", t.ArrayType(MapStructure))
         )
 
-        # Define number of player in event
-        players_idxs = [1, 2, 3]
-
         # Separate and concatenate the 3 player's tags
-        event_3v3_data = _list_player_tags(event_3v3_data, players_idxs)
+        event_3v3_data = _list_player_tags(
+            event_data=event_3v3_data, players_idxs=[1, 2, 3]
+        )
 
         # Separate and concatenate the 3 player's brawlers
         event_3v3_data = _list_player_brawlers(
-            MapStructure, event_3v3_data, players_idxs
+            MapStructure=MapStructure, event_data=event_3v3_data, players_idxs=[1, 2, 3]
         )
 
         # Convert Exploded groups to Spark List object
@@ -297,12 +295,11 @@ def _group_exploder_special(
 
 
 def battlelogs_deconstructor(
-    battlelogs_filtered: pyspark.sql.DataFrame, parameters: Dict
+    battlelogs_filtered: pyspark.sql.DataFrame, parameters: Dict[str, Any]
 ) -> Tuple[pyspark.sql.DataFrame]:
     """
-    Disassembly (Explosion) of player group records from raw JSON formats, to extract
-    combinations of players and brawlers from the same team or from opponents, this is
-    for each of the sessions.
+    Extracts player and brawler combinations from the same team or from opponents,
+    which are previously saved as groups in JSON format.
     Each of the 'exploders' is parameterized by the user, according to the number of
     players needed for each type of event.
     Args:
@@ -418,14 +415,13 @@ def sessions_sum(daily_sessions_list, day):
 
 
 def activity_transformer(
-    battlelogs_filtered: pyspark.sql.DataFrame, parameters: Dict
+    battlelogs_filtered: pyspark.sql.DataFrame, parameters: Dict[str, Any]
 ) -> pyspark.sql.DataFrame:
     """
-    Converts the filtered battle logs into a wrapped format data frame, taking a set
-    of parameters such as days, to extract the retention (and the number of sessions).
-    Performance detail: The Cohort transformation skips exhaustive intermediate
-    transformations, such as 'Sort', since the user can insert many cohorts as they
-    occur in the preprocessing stage, causing excessive partitioning.
+    Converts filtered battlelogs activity into a wrapped format data frame,
+    with retention metrics and n-sessions at the player level of granularity. It
+    takes a set of parameters to extract the retention and number of sessions based
+    on a 'cohort frequency' parameter.
     Args:
         battlelogs_filtered: Filtered Pyspark DataFrame containing only cohorts and
         features required for the study.
@@ -433,6 +429,17 @@ def activity_transformer(
     Returns:
         Pyspark dataframe with retention metrics and n-sessions at the player level
         of granularity.
+    Notes (parameters):
+    - When 'daily' granularity is selected, the cohort period is the day of the
+    user's  first event.
+    - When 'weekly' granularity is selected, the cohort period is the first
+    consecutive Monday on or after the day of the user's first event.
+    - When 'monthly' granularity is selected, the cohort period is the first day of
+    the month in which the user's first event occurred.
+    Notes (performance):
+    - The Cohort frequency transformation skips exhaustive intermediate transformations,
+    such as 'Sort', since the user can insert many cohorts as they occur in the
+    preprocessing stage, causing excessive partitioning.
     """
     # Aggregate user activity data to get daily number of sessions
     user_activity = (
@@ -441,27 +448,11 @@ def activity_transformer(
         .count()
         .withColumnRenamed("count", "daily_sessions")
     )
-    # Validate Cohort Frequency, default to 'daily'
-    if parameters["cohort_frequency"] and isinstance(
-        parameters["cohort_frequency"], str
-    ):
-        # Construct the cohort on a weekly basis
-        if parameters["cohort_frequency"] == "weekly":
-            time_freq = "weekly_battleTime"
-            user_activity = user_activity.withColumn(
-                time_freq, f.date_sub(f.next_day("battleTime", "Monday"), 7)
-            )
-        # Construct the cohort on a monthly basis
-        elif parameters["cohort_frequency"] == "monthly":
-            time_freq = "monthly_battleTime"
-            user_activity = user_activity.withColumn(
-                time_freq, f.trunc("battleTime", "month")
-            )
-        # Construct the cohort on a daily basis (default)
-        else:
-            time_freq = "battleTime"
-    else:
-        time_freq = "battleTime"
+
+    # Validate | Redefine Cohort Frequency, default to 'daily'
+    time_freq, user_activity = _convert_user_activity_frequency(
+        cohort_frequency=parameters["cohort_frequency"], user_activity=user_activity
+    )
 
     # Create a window by each one of the player's window
     player_window = Window.partitionBy(["player_id"])
@@ -547,6 +538,30 @@ def activity_transformer(
     return user_activity_data
 
 
+def _convert_user_activity_frequency(cohort_frequency, user_activity):
+    """Helper function to convert the actual user activity frequency to level
+    defined by the parameter 'cohort_frequency'"""
+    if cohort_frequency and isinstance(cohort_frequency, str):
+        # Construct the cohort on a weekly basis
+        if cohort_frequency == "weekly":
+            time_freq = "weekly_battleTime"
+            user_activity = user_activity.withColumn(
+                time_freq, f.date_sub(f.next_day("battleTime", "Monday"), 7)
+            )
+        # Construct the cohort on a monthly basis
+        elif cohort_frequency == "monthly":
+            time_freq = "monthly_battleTime"
+            user_activity = user_activity.withColumn(
+                time_freq, f.trunc("battleTime", "month")
+            )
+        # Construct the cohort on a daily basis (default)
+        else:
+            time_freq = "battleTime"
+    else:
+        time_freq = "battleTime"
+    return time_freq, user_activity
+
+
 def _ratio_days_availabilty(ratios: List[int], days_available: List[int]):
     """Void function to validate days requested in ratios to generate, are present in
     the retention days extracted"""
@@ -573,7 +588,9 @@ def ratio_agg(ret_num, ret_den):
 
 
 def ratio_register(
-    user_activity: pyspark.sql.DataFrame, params_rat_reg: Dict, params_act_tran: Dict
+    user_activity: pyspark.sql.DataFrame,
+    params_rat_reg: Dict[str, Any],
+    params_act_tran: Dict[str, Any],
 ) -> pyspark.sql.DataFrame:
     """
     Takes Activity per Day from the "activity_transformer_node" (E.G: columns DXR),
@@ -582,7 +599,7 @@ def ratio_register(
         user_activity: Pyspark dataframe with retention metrics and n-sessions at the
         player level of granularity.
         params_rat_reg: Parameters to aggregate retention metrics, based on User inputs.
-        params_act_tran: Parameters to extract activity day per user, based on User
+        params_act_tran: Parameters to extract activity day per user, based on User.
         inputs.
     Returns:
         Pyspark dataframe with bounded retention ratios aggregated.
