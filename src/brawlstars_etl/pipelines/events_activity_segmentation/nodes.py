@@ -5,7 +5,7 @@ generated using Kedro 0.18.4
 import logging
 from functools import reduce
 from ast import literal_eval
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import pyspark.sql
 from pyspark.sql import SparkSession
 from pyspark.sql import DataFrame
@@ -16,8 +16,62 @@ from pyspark.sql.window import Window
 log = logging.getLogger(__name__)
 
 
+def _list_player_tags(event_data: pyspark.sql.DataFrame, players_idxs: List[int]):
+    """Helper function to separate and concatenate multiple player tags into a
+    vertical dimension of Dataframe (Long format)"""
+    for player_num in players_idxs:
+        event_data = (
+            event_data.withColumn(
+                f"team_player_{player_num}",
+                f.col("battle_teams").getItem(player_num - 1),
+            )
+            .withColumn(
+                f"team_player_{player_num}_tag",
+                f.col(f"team_player_{player_num}").getItem("tag"),
+            )
+            .withColumn(
+                f"team_player_{player_num}",
+                f.col("battle_teams").getItem(player_num - 1),
+            )
+            .withColumn(
+                f"team_player_{player_num}_tag",
+                f.col(f"team_player_{player_num}").getItem("tag"),
+            )
+        )
+    player_tags = [f"team_player_{player_num}_tag" for player_num in players_idxs]
+    event_data = event_data.withColumn("players_exploded", f.array(*player_tags))
+    return event_data
+
+
+def _list_player_brawlers(
+    MapStructure: t.Any, event_data: pyspark.sql.DataFrame, players_idxs: List[int]
+):
+    """Helper function to separate and concatenate multiple player brawler names into a
+    vertical dimension of Dataframe (Long format)"""
+    for player_num in players_idxs:
+        event_data = event_data = (
+            event_data.withColumn(
+                f"team_player_{player_num}_brawler",
+                f.col(f"team_player_{player_num}").getItem("brawler"),
+            )
+            .withColumn(
+                f"team_player_{player_num}_brawler",
+                f.from_json(f"team_player_{player_num}_brawler", MapStructure),
+            )
+            .withColumn(
+                f"team_player_{player_num}_brawler_name",
+                f.col(f"team_player_{player_num}_brawler").getItem("name"),
+            )
+        )
+    brawler_names = [
+        f"team_player_{player_num}_brawler_name" for player_num in players_idxs
+    ]
+    event_data = event_data.withColumn("brawlers_exploded", f.array(*brawler_names))
+    return event_data
+
+
 def _group_exploder_solo(
-    event_solo_data: pyspark.sql.DataFrame, standard_columns: List
+    event_solo_data: pyspark.sql.DataFrame, standard_columns: List[str]
 ) -> pyspark.sql.DataFrame:
     """Helper function to subset solo-events information from dictionary-formatted
     columns"""
@@ -73,7 +127,7 @@ def _group_exploder_solo(
 
 
 def _group_exploder_duo(
-    event_duo_data: pyspark.sql.DataFrame, standard_columns: List
+    event_duo_data: pyspark.sql.DataFrame, standard_columns: List[str]
 ) -> pyspark.sql.DataFrame:
     """Helper function to subset duo-events information from dictionary-formatted
     columns"""
@@ -89,50 +143,21 @@ def _group_exploder_duo(
             "battle_teams", f.from_json("battle_teams", t.ArrayType(MapStructure))
         )
 
+        # Define number of player in event
+        players_idxs = [1, 2]
+
         # Separate and concatenate the 2 player's tags
-        event_duo_data = (
-            event_duo_data.withColumn("team_player_1", f.col("battle_teams").getItem(0))
-            .withColumn("team_player_2", f.col("battle_teams").getItem(1))
-            .withColumn("team_player_1_tag", f.col("team_player_1").getItem("tag"))
-            .withColumn("team_player_2_tag", f.col("team_player_2").getItem("tag"))
-            .withColumn(
-                "player_duos_exploded",
-                f.array("team_player_1_tag", "team_player_2_tag"),
-            )
-        )
+        event_duo_data = _list_player_tags(event_duo_data, players_idxs)
+
         # Separate and concatenate the 2 player's brawlers
-        event_duo_data = (
-            event_duo_data.withColumn(
-                "team_player_1_brawler", f.col("team_player_1").getItem("brawler")
-            )
-            .withColumn(
-                "team_player_2_brawler", f.col("team_player_2").getItem("brawler")
-            )
-            .withColumn(
-                "team_player_1_brawler",
-                f.from_json("team_player_1_brawler", MapStructure),
-            )
-            .withColumn(
-                "team_player_2_brawler",
-                f.from_json("team_player_2_brawler", MapStructure),
-            )
-            .withColumn(
-                "team_player_1_brawler_name",
-                f.col("team_player_1_brawler").getItem("name"),
-            )
-            .withColumn(
-                "team_player_2_brawler_name",
-                f.col("team_player_2_brawler").getItem("name"),
-            )
-            .withColumn(
-                "brawler_duos_exploded",
-                f.array("team_player_1_brawler_name", "team_player_2_brawler_name"),
-            )
+        event_duo_data = _list_player_brawlers(
+            MapStructure, event_duo_data, players_idxs
         )
-        # Convert to flatten dataframe
+
+        # Convert Exploded groups to Spark List object
         event_duo_data = event_duo_data.groupBy(standard_columns).agg(
-            f.collect_list("player_duos_exploded").alias("players_collection"),
-            f.collect_list("brawler_duos_exploded").alias("brawlers_collection"),
+            f.collect_list("players_exploded").alias("players_collection"),
+            f.collect_list("brawlers_exploded").alias("brawlers_collection"),
         )
     except Exception as e:
         log.exception(e)
@@ -156,7 +181,7 @@ def _group_exploder_duo(
 
 
 def _group_exploder_3v3(
-    event_3v3_data: pyspark.sql.DataFrame, standard_columns: list
+    event_3v3_data: pyspark.sql.DataFrame, standard_columns: List[str]
 ) -> pyspark.sql.DataFrame:
     """Helper function to subset 3v3 events information from dictionary-formatted
     columns"""
@@ -172,68 +197,23 @@ def _group_exploder_3v3(
             "battle_teams", f.from_json("battle_teams", t.ArrayType(MapStructure))
         )
 
+        # Define number of player in event
+        players_idxs = [1, 2, 3]
+
         # Separate and concatenate the 3 player's tags
-        event_3v3_data = (
-            event_3v3_data.withColumn("team_player_1", f.col("battle_teams").getItem(0))
-            .withColumn("team_player_2", f.col("battle_teams").getItem(1))
-            .withColumn("team_player_3", f.col("battle_teams").getItem(2))
-            .withColumn("team_player_1_tag", f.col("team_player_1").getItem("tag"))
-            .withColumn("team_player_2_tag", f.col("team_player_2").getItem("tag"))
-            .withColumn("team_player_3_tag", f.col("team_player_3").getItem("tag"))
-            .withColumn(
-                "player_trios_exploded",
-                f.array("team_player_1_tag", "team_player_2_tag", "team_player_3_tag"),
-            )
-        )
+        event_3v3_data = _list_player_tags(event_3v3_data, players_idxs)
+
         # Separate and concatenate the 3 player's brawlers
-        event_3v3_data = (
-            event_3v3_data.withColumn(
-                "team_player_1_brawler", f.col("team_player_1").getItem("brawler")
-            )
-            .withColumn(
-                "team_player_2_brawler", f.col("team_player_2").getItem("brawler")
-            )
-            .withColumn(
-                "team_player_3_brawler", f.col("team_player_3").getItem("brawler")
-            )
-            .withColumn(
-                "team_player_1_brawler",
-                f.from_json("team_player_1_brawler", MapStructure),
-            )
-            .withColumn(
-                "team_player_2_brawler",
-                f.from_json("team_player_2_brawler", MapStructure),
-            )
-            .withColumn(
-                "team_player_3_brawler",
-                f.from_json("team_player_3_brawler", MapStructure),
-            )
-            .withColumn(
-                "team_player_1_brawler_name",
-                f.col("team_player_1_brawler").getItem("name"),
-            )
-            .withColumn(
-                "team_player_2_brawler_name",
-                f.col("team_player_2_brawler").getItem("name"),
-            )
-            .withColumn(
-                "team_player_3_brawler_name",
-                f.col("team_player_3_brawler").getItem("name"),
-            )
-            .withColumn(
-                "brawler_trios_exploded",
-                f.array(
-                    "team_player_1_brawler_name",
-                    "team_player_2_brawler_name",
-                    "team_player_3_brawler_name",
-                ),
-            )
+        event_3v3_data = _list_player_brawlers(
+            MapStructure, event_3v3_data, players_idxs
         )
-        # Convert to flatten dataframe
+
+        # Convert Exploded groups to Spark List object
         event_3v3_data = event_3v3_data.groupBy(standard_columns).agg(
-            f.collect_list("player_trios_exploded").alias("players_collection"),
-            f.collect_list("brawler_trios_exploded").alias("brawlers_collection"),
+            f.collect_list("players_exploded").alias("players_collection"),
+            f.collect_list("brawlers_exploded").alias("brawlers_collection"),
         )
+
     except Exception as e:
         log.exception(e)
         log.warning(
@@ -256,7 +236,7 @@ def _group_exploder_3v3(
 
 
 def _group_exploder_special(
-    event_special_data: pyspark.sql.DataFrame, standard_columns: list
+    event_special_data: pyspark.sql.DataFrame, standard_columns: List[str]
 ) -> pyspark.sql.DataFrame:
     """Helper function to subset special events information from dictionary-formatted
     columns"""
@@ -318,12 +298,7 @@ def _group_exploder_special(
 
 def battlelogs_deconstructor(
     battlelogs_filtered: pyspark.sql.DataFrame, parameters: Dict
-) -> (
-    pyspark.sql.DataFrame,
-    pyspark.sql.DataFrame,
-    pyspark.sql.DataFrame,
-    pyspark.sql.DataFrame,
-):
+) -> Tuple[pyspark.sql.DataFrame]:
     """
     Disassembly (Explosion) of player group records from raw JSON formats, to extract
     combinations of players and brawlers from the same team or from opponents, this is
@@ -459,9 +434,6 @@ def activity_transformer(
         Pyspark dataframe with retention metrics and n-sessions at the player level
         of granularity.
     """
-    # Call | Create Spark Session
-    spark = SparkSession.builder.getOrCreate()
-
     # Aggregate user activity data to get daily number of sessions
     user_activity = (
         battlelogs_filtered.select("cohort", "battleTime", "player_id")
@@ -575,7 +547,7 @@ def activity_transformer(
     return user_activity_data
 
 
-def _ratio_days_availabilty(ratios: list, days_available: list):
+def _ratio_days_availabilty(ratios: List[int], days_available: List[int]):
     """Void function to validate days requested in ratios to generate, are present in
     the retention days extracted"""
     for num, den in ratios:
@@ -615,9 +587,6 @@ def ratio_register(
     Returns:
         Pyspark dataframe with bounded retention ratios aggregated.
     """
-    # Call | Create Spark Session
-    spark = SparkSession.builder.getOrCreate()
-
     # Request parameters to validate
     days_available = params_act_tran["retention_days"]
     ratios = [literal_eval(ratio) for ratio in params_rat_reg["ratios"]]
