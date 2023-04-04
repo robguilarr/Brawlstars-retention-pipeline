@@ -17,8 +17,13 @@ log = logging.getLogger(__name__)
 
 
 def _list_player_tags(event_data: pyspark.sql.DataFrame, players_idxs: List[int]):
-    """Helper function to separate and concatenate multiple player tags into a
-    vertical dimension of Dataframe (Long format)"""
+    """Helper function to separate and concatenate multiple player tags from the
+    'battle_teams' column into a vertical dimension of the input DataFrame (Long
+    format) for the given list of player indices. The resulting DataFrame contains
+    columns with the player tags for each player, as well as an 'players_exploded'
+    column that contain rows the player"""
+    # Iterate over player indices and create new columns for each player's tag and
+    # corresponding player
     for player_num in players_idxs:
         event_data = (
             event_data.withColumn(
@@ -38,6 +43,8 @@ def _list_player_tags(event_data: pyspark.sql.DataFrame, players_idxs: List[int]
                 f.col(f"team_player_{player_num}").getItem("tag"),
             )
         )
+    # Create a list of column names for the player tags and use it to create a new
+    # column 'players_exploded'
     player_tags = [f"team_player_{player_num}_tag" for player_num in players_idxs]
     event_data = event_data.withColumn("players_exploded", f.array(*player_tags))
     return event_data
@@ -46,10 +53,12 @@ def _list_player_tags(event_data: pyspark.sql.DataFrame, players_idxs: List[int]
 def _list_player_brawlers(
     MapStructure: t.Any, event_data: pyspark.sql.DataFrame, players_idxs: List[int]
 ):
-    """Helper function to separate and concatenate multiple player brawler names into a
-    vertical dimension of Dataframe (Long format)"""
+    """Helper function to convert multiple player brawler names into a vertical
+    dimension of the DataFrame (Long format)"""
+    # Iterate over player indices and create new columns for each player's brawler and
+    # corresponding player
     for player_num in players_idxs:
-        event_data = event_data = (
+        event_data = (
             event_data.withColumn(
                 f"team_player_{player_num}_brawler",
                 f.col(f"team_player_{player_num}").getItem("brawler"),
@@ -63,6 +72,8 @@ def _list_player_brawlers(
                 f.col(f"team_player_{player_num}_brawler").getItem("name"),
             )
         )
+    # Create a list of column names for the player brawler and use it to create a new
+    # column 'brawlers_exploded'
     brawler_names = [
         f"team_player_{player_num}_brawler_name" for player_num in players_idxs
     ]
@@ -73,26 +84,27 @@ def _list_player_brawlers(
 def _group_exploder_solo(
     event_solo_data: pyspark.sql.DataFrame, standard_columns: List[str]
 ) -> pyspark.sql.DataFrame:
-    """Helper function to subset solo-events information from dictionary-formatted
-    columns"""
+    """Helper function that extracts solo-events information from
+    dictionary-formatted columns"""
     try:
-        # Explode list of player dictionaries as StringTypes
+        # Explode the list of player dictionaries as string types
         event_solo_data = event_solo_data.withColumn(
             "battle_players", f.explode("battle_players")
         )
 
-        # Convert dictionary of players from StringTypes to MapTypes
+        # Convert the dictionary of players from StringTypes to MapTypes
         MapStructure = t.MapType(t.StringType(), t.StringType())
         event_solo_data = event_solo_data.withColumn(
             "battle_players", f.from_json("battle_players", MapStructure)
         )
 
-        # Extract players tags
+        # Extract player tags and brawlers
         event_solo_data = event_solo_data.withColumn(
             "tag", f.col("battle_players").getItem("tag")
         ).withColumn("brawler", f.col("battle_players").getItem("brawler"))
-        # Convert dictionary with brawlers as StringTypes to MapTypes and extract
-        # brawler attribute
+
+        # Convert the dictionary with brawlers as StringTypes to MapTypes and extract
+        # the brawler attribute
         event_solo_data = event_solo_data.withColumn(
             "brawler", f.from_json("brawler", MapStructure)
         )
@@ -100,7 +112,8 @@ def _group_exploder_solo(
             "brawler", f.col("brawler").getItem("name")
         )
 
-        # Convert to flatten dataframe
+        # Convert the dataframe to a flattened structure by grouping on standard
+        # columns and aggregating player and brawler collections
         event_solo_data = event_solo_data.groupBy(standard_columns).agg(
             f.collect_list("tag").alias("players_collection"),
             f.collect_list("brawler").alias("brawlers_collection"),
@@ -108,8 +121,9 @@ def _group_exploder_solo(
     except Exception as e:
         log.exception(e)
         log.warning(
-            "-- Exploder broken: Check 'battle_players' column has a "
-            "consistent structure according API specs --"
+            "Failed to extract solo-events information from the 'battle_players' "
+            "column. Check if the column has a consistent structure according to API "
+            "specs."
         )
         standard_columns.extend(["battle_players"])
         event_solo_data = (
@@ -132,28 +146,28 @@ def _group_exploder_duo(
     """Helper function to subset duo-events information from dictionary-formatted
     columns"""
     try:
-        # Explode all teams (list of duos) as StringTypes
+        # Explode the list of player dictionaries as string types
         event_duo_data = event_duo_data.withColumn(
             "battle_teams", f.explode("battle_teams")
         )
 
-        # Convert dictionary of players from StringTypes to Array of MapTypes
+        # Convert the dictionary of players from string types to array of map types
         MapStructure = t.MapType(t.StringType(), t.StringType())
         event_duo_data = event_duo_data.withColumn(
             "battle_teams", f.from_json("battle_teams", t.ArrayType(MapStructure))
         )
 
-        # Separate and concatenate the 2 player's tags
+        # Extract and concatenate the tags of two players
         event_duo_data = _list_player_tags(
             event_data=event_duo_data, players_idxs=[1, 2]
         )
 
-        # Separate and concatenate the 2 player's brawlers
+        # Extract and concatenate the brawlers of two players
         event_duo_data = _list_player_brawlers(
             MapStructure=MapStructure, event_data=event_duo_data, players_idxs=[1, 2]
         )
 
-        # Convert Exploded groups to Spark List object
+        # Group the exploded groups into a Spark list object
         event_duo_data = event_duo_data.groupBy(standard_columns).agg(
             f.collect_list("players_exploded").alias("players_collection"),
             f.collect_list("brawlers_exploded").alias("brawlers_collection"),
@@ -164,6 +178,8 @@ def _group_exploder_duo(
             "-- Exploder broken: Check 'battle_teams' column has a consistent "
             "structure according API specs --"
         )
+        # If there's an error, create null columns for the players and brawlers
+        # collections
         standard_columns.extend(["battle_teams"])
         event_duo_data = (
             event_duo_data.select(*standard_columns)
@@ -185,28 +201,28 @@ def _group_exploder_3v3(
     """Helper function to subset 3v3 events information from dictionary-formatted
     columns"""
     try:
-        # Explode the two teams (3v3) as StringTypes
+        # Explode the list of player dictionaries as string types
         event_3v3_data = event_3v3_data.withColumn(
             "battle_teams", f.explode("battle_teams")
         )
 
-        # Convert dictionary of players from StringTypes to Array of MapTypes
+        # Convert the dictionary of players from string types to array of map types
         MapStructure = t.MapType(t.StringType(), t.StringType())
         event_3v3_data = event_3v3_data.withColumn(
             "battle_teams", f.from_json("battle_teams", t.ArrayType(MapStructure))
         )
 
-        # Separate and concatenate the 3 player's tags
+        # Extract and concatenate the tags of three players
         event_3v3_data = _list_player_tags(
             event_data=event_3v3_data, players_idxs=[1, 2, 3]
         )
 
-        # Separate and concatenate the 3 player's brawlers
+        # Extract and concatenate the brawlers of three players
         event_3v3_data = _list_player_brawlers(
             MapStructure=MapStructure, event_data=event_3v3_data, players_idxs=[1, 2, 3]
         )
 
-        # Convert Exploded groups to Spark List object
+        # Group the exploded groups into a Spark list object
         event_3v3_data = event_3v3_data.groupBy(standard_columns).agg(
             f.collect_list("players_exploded").alias("players_collection"),
             f.collect_list("brawlers_exploded").alias("brawlers_collection"),
@@ -218,6 +234,8 @@ def _group_exploder_3v3(
             "-- Exploder broken: Check 'battle_teams' column has a consistent "
             "structure according API specs --"
         )
+        # If there's an error, create null columns for the players and brawlers
+        # collections
         standard_columns.extend(["battle_teams"])
         event_3v3_data = (
             event_3v3_data.select(*standard_columns)
@@ -239,12 +257,12 @@ def _group_exploder_special(
     """Helper function to subset special events information from dictionary-formatted
     columns"""
     try:
-        # Explode the list of team players as StringTypes
+        # Explode the list of player dictionaries as string types
         event_special_data = event_special_data.withColumn(
             "battle_players", f.explode("battle_players")
         )
 
-        # Convert dictionary of players from StringTypes to Array of MapTypes
+        # Convert the dictionary of players from string types to array of map types
         MapStructure = t.MapType(t.StringType(), t.StringType())
         event_special_data = event_special_data.withColumn(
             "battle_players", f.from_json("battle_players", MapStructure)
@@ -265,10 +283,10 @@ def _group_exploder_special(
                 "team_player_brawler_name", f.col("team_player_brawler").getItem("name")
             )
         )
-        # Convert to flatten dataframe
         standard_columns.extend(
             ["battle_bigBrawler_tag", "battle_bigBrawler_brawler_name"]
         )
+        # Group the exploded groups into a Spark list object
         event_special_data = event_special_data.groupBy(standard_columns).agg(
             f.collect_list("team_player_tag").alias("players_collection"),
             f.collect_list("team_player_brawler_name").alias("brawlers_collection"),
@@ -279,6 +297,8 @@ def _group_exploder_special(
             "-- Exploder broken: Check 'battle_players' column has a consistent "
             "structure according API specs --"
         )
+        # If there's an error, create null columns for the players and brawlers
+        # collections
         standard_columns.extend(["battle_players"])
         event_special_data = (
             event_special_data.select(*standard_columns)
@@ -298,16 +318,17 @@ def battlelogs_deconstructor(
     battlelogs_filtered: pyspark.sql.DataFrame, parameters: Dict[str, Any]
 ) -> Tuple[pyspark.sql.DataFrame]:
     """
-    Extracts player and brawler combinations from the same team or from opponents,
-    which are previously saved as groups in JSON format.
+    Extract player and brawler combinations from the same team or opponents,
+    grouped in JSON format, based on user-defined event types.
     Each of the 'exploders' is parameterized by the user, according to the number of
     players needed for each type of event.
     Args:
-        battlelogs_filtered: Filtered Pyspark DataFrame containing only cohorts and
-        features required.
-        parameters: Event types defined by the user to include in the subset process.
+        battlelogs_filtered: a filtered Pyspark DataFrame containing relevant cohorts
+        and features.
+        parameters: a dictionary of event types defined by the user to include in the
+        subset process.
     Returns:
-        Four Pyspark dataframes containing only one event type each.
+        A tuple of four Pyspark DataFrames, each containing only one event type
     """
     # Call | Create Spark Session
     spark = SparkSession.builder.getOrCreate()
@@ -373,19 +394,18 @@ def battlelogs_deconstructor(
 
 @f.udf(returnType=t.IntegerType())
 def retention_metric(days_activity_list, day):
-    """User Defined Function to return the user-retention given the definition given
-    by the parameter"""
-    # Maximum day retained extraction
+    """User Defined Function to return user retention, based on the given definition"""
+    # Extract the maximum day retained
     for i in reversed(range(len(days_activity_list))):
         if days_activity_list[i] == 1:
             max_day_ret = i
             break
     # Subset columns of days needed for evaluation
     days_activity = days_activity_list[: day + 1]
-    # If player never installed the game
+    # If player never installed the game, return 0
     if days_activity[0] != 1:
         return 0
-    # If user returned after more days than the one evaluated
+    # If user returned after more days than the one evaluated, return 1
     elif day <= max_day_ret:
         return 1
     else:
@@ -393,7 +413,7 @@ def retention_metric(days_activity_list, day):
         if day > len(days_activity):
             return 0
         else:
-            # Evaluate user installed the app and return on the specific day
+            # Evaluate user installed the app and returned on the specific day, return 1
             if days_activity[0] == 1 and days_activity[-1] == 1:
                 return 1
             else:
@@ -402,11 +422,10 @@ def retention_metric(days_activity_list, day):
 
 @f.udf(returnType=t.IntegerType())
 def sessions_sum(daily_sessions_list, day):
-    """User Defined Function to return the total of sessions accumulated, limiting
-    the ranges by the parameter defined by the user"""
-    # Subset columns of days needed
+    """Return the total number of sessions accumulated within a given range"""
+    # Slice the list to only include the specified range of days
     daily_sessions = daily_sessions_list[: day + 1]
-    # Sum the total of sessions in the given range
+    # Calculate the total number of sessions within the specified range
     total = 0
     for i in range(len(daily_sessions)):
         if daily_sessions[i] is not None:
@@ -611,7 +630,7 @@ def ratio_register(
     # Validate day labels are present in parameters
     _ratio_days_availabilty(ratios, days_available)
 
-    # Grouping + Renaming multiple columns: https://stackoverflow.com/a/74881697
+    # Grouping + renaming multiple columns: https://stackoverflow.com/a/74881697
     retention_columns = [
         col for col in user_activity.columns if col not in ["player_id", "first_log"]
     ]
