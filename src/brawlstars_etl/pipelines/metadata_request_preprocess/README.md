@@ -2,20 +2,15 @@
 
 > *Note:* This is a `README.md` boilerplate generated using `Kedro 0.18.4`.
 
-## Overview
+# Overview
 
-<!---
-Please describe your modular pipeline here.
--->
+This pipeline includes two nodes: `players_info_request` and `metadata_preparation`. The 
+first node extracts metadata from the Brawlstars API for a list of players with 
+given tags.
 
-## Pipeline inputs
+It retrieves the metadata asynchronously using a list of futures objects 
+that consist of async threads.
 
-<!---
-The list of pipeline inputs.
--->
-
-## Pipeline outputs
-
-<!---
-The list of pipeline outputs.
--->
+The second node preprocesses the metadata into a 
+format suitable for analysis with Spark, adapting its format to match a given DDL 
+schema and removing unnecessary columns.
