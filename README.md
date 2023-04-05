@@ -1,8 +1,9 @@
-# Brawlstars Gamelogs Extractor & Processor pipeline
+# 🏜️🌮 Brawlstars Retention Pipeline
 
 ## Overview
 
-This is your new Kedro project, which was generated using `Kedro 0.18.4`.
+Kedro Pipeline to extract user retention metrics from Brawlstars API and load it to 
+GCP, which was generated using `Kedro 0.18.4` and `Apache Spark 3.2.2`.
 
 Take a look at the [Kedro documentation](https://kedro.readthedocs.io) to get started.
 
