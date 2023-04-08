@@ -182,4 +182,4 @@ def metadata_preparation(
         "bestTimeAsBigBrawler",
     )
 
-    return players_metadata_prepared
+    return players_metadata_prepared.toPandas()
