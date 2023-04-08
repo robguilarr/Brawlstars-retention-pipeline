@@ -18,7 +18,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             node(
                 func=metadata_preparation,
                 inputs=["player_metadata@pandas", "params:metadata_preparation"],
-                outputs="metadata_prepared@pyspark",
+                outputs="metadata_prepared@pandas",
                 name="metadata_preparation_node",
             ),
         ]
