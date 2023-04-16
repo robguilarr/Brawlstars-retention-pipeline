@@ -1,4 +1,4 @@
-# 🏜️🌮 Brawlstars Retention Pipeline
+# 🏜️ Brawlstars Retention Pipeline
 
 ## Overview
 
