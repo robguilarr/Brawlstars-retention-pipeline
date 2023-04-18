@@ -55,6 +55,22 @@ metadata_reduced@pandas:
   <<: *pandas
   filepath: ${data.raw_metadata}/metadata_reduced.csv
 
+players_clustered@pandas:
+  <<: *pandas
+  filepath: ${data.enriched_data}/players_clustered.csv
+
+best_params_KMeans:
+  type: tracking.JSONDataSet
+  filepath: ${data.model_tracking}/best_params_KMeans.json
+
+eval_params_KMeans:
+  type: tracking.JSONDataSet
+  filepath: ${data.model_tracking}/eval_params_KMeans.json
+
+metrics_KMeans:
+  type: tracking.MetricsDataSet
+  filepath: ${data.model_tracking}/metrics_KMeans.json
+
 event_solo_data@pyspark:
   <<: *pyspark
   filepath: ${data.enriched_data}/event_types_data/event_solo_data.parquet

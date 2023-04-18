@@ -6,6 +6,7 @@ data:
     enriched_data: "data/04_enriched_data"
     curated_data: "data/05_curated_data"
     viz_data: "data/06_viz_data"
+    model_tracking: "data/07_model_tracking"
 
 gcp:
     player_tags: "data/01_player_tags"
@@ -14,3 +15,4 @@ gcp:
     enriched_data: "data/04_enriched_data"
     curated_data: "data/05_curated_data"
     viz_data: "data/06_viz_data"
+    model_tracking: "data/07_model_tracking"

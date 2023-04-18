@@ -7,3 +7,13 @@
 # ----- Parameters for feature selector ----
 feature_selector:
   top_features: 4
+
+
+# ----- Parameters for player clustering ----
+players_clustering:
+  max_n_cluster: 13
+  starting_point_method: ["k-means++"]
+  max_iter: [200]
+  distortion_tol: [0.0001]
+  cross_validations: 5
+  cores: -1
