@@ -180,6 +180,7 @@ def metadata_preparation(
         "club_tag",
         "club_name",
         "bestTimeAsBigBrawler",
+        'highestPowerPlayPoints',
     )
 
     return players_metadata_prepared.toPandas()
