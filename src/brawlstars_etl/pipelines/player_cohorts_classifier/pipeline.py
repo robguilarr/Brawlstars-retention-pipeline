@@ -4,7 +4,7 @@ generated using Kedro 0.18.4
 """
 
 from kedro.pipeline import Pipeline, node, pipeline
-from .nodes import feature_scaler
+from .nodes import feature_scaler, feature_selector
 
 
 def create_pipeline(**kwargs) -> Pipeline:
@@ -15,7 +15,13 @@ def create_pipeline(**kwargs) -> Pipeline:
                 inputs=["metadata_prepared@pandas"],
                 outputs="metadata_scaled@pandas",
                 name="feature_scaler_node",
-            )
+            ),
+            node(
+                func=feature_selector,
+                inputs=["metadata_scaled@pandas", "params:feature_selector"],
+                outputs="metadata_reduced@pandas",
+                name="feature_selector_node",
+            ),
         ]
     )
     return player_cohorts_classifier

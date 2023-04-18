@@ -51,6 +51,10 @@ metadata_scaled@pandas:
   <<: *pandas
   filepath: ${data.raw_metadata}/metadata_scaled.csv
 
+metadata_reduced@pandas:
+  <<: *pandas
+  filepath: ${data.raw_metadata}/metadata_reduced.csv
+
 event_solo_data@pyspark:
   <<: *pyspark
   filepath: ${data.enriched_data}/event_types_data/event_solo_data.parquet
