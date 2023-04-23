@@ -43,13 +43,15 @@ metadata_prepared@pandas:
   <<: *pandas
   filepath: ${data.raw_metadata}/metadata_prepared.csv
 
+# -------- Player Classifier Data --------
+
 metadata_scaled@pandas:
   <<: *pandas
   filepath: ${data.raw_metadata}/metadata_scaled.csv
 
 metadata_reduced@pandas:
   <<: *pandas
-  filepath: ${data.raw_metadata}/metadata_reduced.csv
+  filepath: ${data.feature_store}/metadata_reduced.csv
 
 features_selected:
   type: tracking.JSONDataSet
@@ -62,6 +64,13 @@ best_params_KMeans:
 eval_params_KMeans:
   type: tracking.JSONDataSet
   filepath: ${data.model_registry}/eval_params_KMeans.json
+
+inertia_plot:
+  type: plotly.JSONDataSet
+  filepath: ${data.viz_data}/inertia_plot.json
+  versioned: true
+  save_args:
+    engine: auto
 
 kmeans_estimator:
   type: pickle.PickleDataSet
@@ -80,6 +89,8 @@ metrics_KMeans:
 players_metadata_clustered@pandas:
   <<: *pandas
   filepath: ${data.enriched_data}/players_metadata_clustered.csv
+
+# -------- Event Data & Activity --------
 
 event_solo_data@pyspark:
   <<: *pyspark
@@ -104,3 +115,34 @@ user_activity_data@pyspark:
 cohort_activity_data@pyspark:
   <<: *pyspark
   filepath: ${data.curated_data}/cohort_activity_data.parquet
+
+# -------- Centroids Plots --------
+
+centroid_plot_1:
+  type: plotly.JSONDataSet
+  filepath: ${data.viz_data}/centroid_plot_1.json
+  versioned: true
+  save_args:
+    engine: auto
+
+centroid_plot_2:
+  type: plotly.JSONDataSet
+  filepath: ${data.viz_data}/centroid_plot_2.json
+  versioned: true
+  save_args:
+    engine: auto
+
+centroid_plot_3:
+  type: plotly.JSONDataSet
+  filepath: ${data.viz_data}/centroid_plot_3.json
+  versioned: true
+  save_args:
+    engine: auto
+
+centroid_plot_4:
+  type: plotly.JSONDataSet
+  filepath: ${data.viz_data}/centroid_plot_4.json
+  versioned: true
+  save_args:
+    engine: auto
+
