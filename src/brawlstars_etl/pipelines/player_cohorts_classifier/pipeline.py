@@ -4,7 +4,12 @@ generated using Kedro 0.18.4
 """
 
 from kedro.pipeline import Pipeline, node, pipeline
-from .nodes import feature_scaler, feature_selector, players_clustering
+from .nodes import (
+    feature_scaler,
+    feature_selector,
+    kmeans_estimator_grid_search,
+    kmeans_inference,
+)
 
 
 def create_pipeline(**kwargs) -> Pipeline:
@@ -19,19 +24,30 @@ def create_pipeline(**kwargs) -> Pipeline:
             node(
                 func=feature_selector,
                 inputs=["metadata_scaled@pandas", "params:feature_selector"],
-                outputs="metadata_reduced@pandas",
+                outputs=["metadata_reduced@pandas", "features_selected"],
                 name="feature_selector_node",
             ),
             node(
-                func=players_clustering,
-                inputs=["metadata_reduced@pandas", "params:players_clustering"],
+                func=kmeans_estimator_grid_search,
+                inputs=[
+                    "metadata_reduced@pandas",
+                    "params:kmeans_estimator_grid_search",
+                ],
                 outputs=[
-                    "players_clustered@pandas",
+                    "kmeans_estimator",
                     "best_params_KMeans",
                     "eval_params_KMeans",
+                ],
+                name="kmeans_estimator_grid_search_node",
+            ),
+            node(
+                func=kmeans_inference,
+                inputs=["metadata_reduced@pandas", "kmeans_estimator"],
+                outputs=[
+                    "players_metadata_clustered@pandas",
                     "metrics_KMeans",
                 ],
-                name="players_clustering_node",
+                name="kmeans_inference_node",
             ),
         ]
     )
