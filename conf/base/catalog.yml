@@ -39,10 +39,6 @@ player_metadata@pandas:
   <<: *pandas
   filepath: ${data.raw_metadata}/player_metadata.csv
 
-metadata_prepared@pyspark:
-  <<: *pyspark
-  filepath: ${data.raw_metadata}/metadata_prepared.parquet
-
 metadata_prepared@pandas:
   <<: *pandas
   filepath: ${data.raw_metadata}/metadata_prepared.csv
@@ -55,66 +51,56 @@ metadata_reduced@pandas:
   <<: *pandas
   filepath: ${data.raw_metadata}/metadata_reduced.csv
 
-players_clustered@pandas:
-  <<: *pandas
-  filepath: ${data.enriched_data}/players_clustered.csv
+features_selected:
+  type: tracking.JSONDataSet
+  filepath: ${data.feature_store}/features_selected.json
 
 best_params_KMeans:
   type: tracking.JSONDataSet
-  filepath: ${data.model_tracking}/best_params_KMeans.json
+  filepath: ${data.model_registry}/best_params_KMeans.json
 
 eval_params_KMeans:
   type: tracking.JSONDataSet
-  filepath: ${data.model_tracking}/eval_params_KMeans.json
+  filepath: ${data.model_registry}/eval_params_KMeans.json
+
+kmeans_estimator:
+  type: pickle.PickleDataSet
+  filepath: ${data.model_registry}/kmeans_estimator.pkl
+  load_args:
+    fix_imports: true
+    encoding: 'bytes'
+  save_args:
+    fix_imports: true
+    protocol: 4
 
 metrics_KMeans:
   type: tracking.MetricsDataSet
-  filepath: ${data.model_tracking}/metrics_KMeans.json
+  filepath: ${data.model_registry}/metrics_KMeans.json
+
+players_metadata_clustered@pandas:
+  <<: *pandas
+  filepath: ${data.enriched_data}/players_metadata_clustered.csv
 
 event_solo_data@pyspark:
   <<: *pyspark
   filepath: ${data.enriched_data}/event_types_data/event_solo_data.parquet
 
-event_solo_data@pandas:
-  <<: *pandas
-  filepath: ${data.enriched_data}/event_types_data/event_solo_data.csv
-
 event_duo_data@pyspark:
   <<: *pyspark
   filepath: ${data.enriched_data}/event_types_data/event_duo_data.parquet
-
-event_duo_data@pandas:
-  <<: *pandas
-  filepath: ${data.enriched_data}/event_types_data/event_duo_data.csv
 
 event_3v3_data@pyspark:
   <<: *pyspark
   filepath: ${data.enriched_data}/event_types_data/event_3v3_data.parquet
 
-event_3v3_data@pandas:
-  <<: *pandas
-  filepath: ${data.enriched_data}/event_types_data/event_3v3_data.csv
-
 event_special_data@pyspark:
   <<: *pyspark
   filepath: ${data.enriched_data}/event_types_data/event_special_data.parquet
-
-event_special_data@pandas:
-  <<: *pandas
-  filepath: ${data.enriched_data}/event_types_data/event_special_data.csv
 
 user_activity_data@pyspark:
   <<: *pyspark
   filepath: ${data.enriched_data}/user_activity_data.parquet
 
-user_activity_data@pandas:
-  <<: *pandas
-  filepath: ${data.enriched_data}/user_activity_data.csv
-
 cohort_activity_data@pyspark:
   <<: *pyspark
   filepath: ${data.curated_data}/cohort_activity_data.parquet
-
-cohort_activity_data@pandas:
-  <<: *pandas
-  filepath: ${data.curated_data}/cohort_activity_data.csv

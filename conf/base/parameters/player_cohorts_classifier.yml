@@ -10,7 +10,8 @@ feature_selector:
 
 
 # ----- Parameters for player clustering ----
-players_clustering:
+kmeans_estimator_grid_search:
+  random_state: 42
   max_n_cluster: 13
   starting_point_method: ["k-means++"]
   max_iter: [200]
