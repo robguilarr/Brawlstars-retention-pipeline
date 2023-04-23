@@ -9,6 +9,7 @@ from .nodes import (
     feature_selector,
     kmeans_estimator_grid_search,
     kmeans_inference,
+    centroid_plot_generator,
 )
 
 
@@ -37,6 +38,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                     "kmeans_estimator",
                     "best_params_KMeans",
                     "eval_params_KMeans",
+                    "inertia_plot",
                 ],
                 name="kmeans_estimator_grid_search_node",
             ),
@@ -48,6 +50,21 @@ def create_pipeline(**kwargs) -> Pipeline:
                     "metrics_KMeans",
                 ],
                 name="kmeans_inference_node",
+            ),
+            node(
+                func=centroid_plot_generator,
+                inputs=[
+                    "metadata_reduced@pandas",
+                    "kmeans_estimator",
+                    "params:centroid_plot_generator",
+                ],
+                outputs=[
+                    "centroid_plot_1",
+                    "centroid_plot_2",
+                    "centroid_plot_3",
+                    "centroid_plot_4",
+                ],
+                name="centroid_plot_generator_node",
             ),
         ]
     )
