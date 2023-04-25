@@ -16,7 +16,9 @@ from pyspark.sql.window import Window
 log = logging.getLogger(__name__)
 
 
-def _list_player_tags(event_data: pyspark.sql.DataFrame, players_idxs: List[int]):
+def _list_player_tags(
+    event_data: pyspark.sql.DataFrame, players_idxs: List[int]
+) -> pyspark.sql.DataFrame:
     """Helper function to separate and concatenate multiple player tags from the
     'battle_teams' column into a vertical dimension of the input DataFrame (Long
     format) for the given list of player indices. The resulting DataFrame contains
@@ -52,7 +54,7 @@ def _list_player_tags(event_data: pyspark.sql.DataFrame, players_idxs: List[int]
 
 def _list_player_brawlers(
     MapStructure: t.Any, event_data: pyspark.sql.DataFrame, players_idxs: List[int]
-):
+) -> pyspark.sql.DataFrame:
     """Helper function to convert multiple player brawler names into a vertical
     dimension of the DataFrame (Long format)"""
     # Iterate over player indices and create new columns for each player's brawler and
@@ -316,7 +318,12 @@ def _group_exploder_special(
 
 def battlelogs_deconstructor(
     battlelogs_filtered: pyspark.sql.DataFrame, parameters: Dict[str, Any]
-) -> Tuple[pyspark.sql.DataFrame]:
+) -> Tuple[
+    pyspark.sql.DataFrame,
+    pyspark.sql.DataFrame,
+    pyspark.sql.DataFrame,
+    pyspark.sql.DataFrame,
+]:
     """
     Extract player and brawler combinations from the same team or opponents,
     grouped in JSON format, based on user-defined event types.
@@ -557,7 +564,9 @@ def activity_transformer(
     return user_activity_data
 
 
-def _convert_user_activity_frequency(cohort_frequency, user_activity):
+def _convert_user_activity_frequency(
+    cohort_frequency: str, user_activity: pyspark.sql.DataFrame
+) -> Tuple[str, pyspark.sql.DataFrame]:
     """Helper function to convert the actual user activity frequency to level
     defined by the parameter 'cohort_frequency'"""
     if cohort_frequency and isinstance(cohort_frequency, str):

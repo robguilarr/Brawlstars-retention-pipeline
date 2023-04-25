@@ -112,6 +112,10 @@ user_activity_data@pyspark:
   <<: *pyspark
   filepath: ${data.enriched_data}/user_activity_data.parquet
 
+player_clustered_activity@pandas:
+  <<: *pandas
+  filepath: ${data.curated_data}/player_clustered_activity.csv
+
 cohort_activity_data@pyspark:
   <<: *pyspark
   filepath: ${data.curated_data}/cohort_activity_data.parquet
@@ -145,4 +149,3 @@ centroid_plot_4:
   versioned: true
   save_args:
     engine: auto
-
