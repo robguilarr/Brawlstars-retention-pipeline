@@ -4,7 +4,7 @@ generated using Kedro 0.18.4
 """
 
 from kedro.pipeline import Pipeline, node, pipeline
-from .nodes import player_cluster_activity_concatenator
+from .nodes import player_cluster_activity_concatenator, user_retention_plot_gen
 
 
 def create_pipeline(**kwargs) -> Pipeline:
@@ -16,10 +16,19 @@ def create_pipeline(**kwargs) -> Pipeline:
                     "user_activity_data@pyspark",
                     "players_metadata_clustered@pandas",
                     "params:ratio_register",
-                    "params:activity_transformer"
+                    "params:activity_transformer",
                 ],
                 outputs="player_clustered_activity@pandas",
                 name="player_cluster_activity_concatenator_node",
+            ),
+            node(
+                func=user_retention_plot_gen,
+                inputs=[
+                    "player_clustered_activity@pandas",
+                    "params:user_retention_plot_gen",
+                ],
+                outputs="user_retention_plot",
+                name="user_retention_plot_gen_node",
             ),
         ]
     )

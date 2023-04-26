@@ -421,7 +421,7 @@ def centroid_plot_generator(
         return fig, fig, fig, fig
 
 
-def _generate_palette(num_colors):
+def _generate_palette(num_colors: int):
     """Helper function to generate a list of hexadecimal color codes, where each code
     consists of a '#' followed by 6 randomly generated characters (0-9 and A-F)"""
     # Generate 'num_colors' number of color codes

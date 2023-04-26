@@ -149,3 +149,12 @@ centroid_plot_4:
   versioned: true
   save_args:
     engine: auto
+
+# -------- User Retention Plot --------
+
+user_retention_plot:
+  type: plotly.JSONDataSet
+  filepath: ${data.viz_data}/user_retention_plot.json
+  versioned: true
+  save_args:
+    engine: auto
