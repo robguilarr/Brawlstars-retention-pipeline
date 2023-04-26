@@ -5,8 +5,10 @@ generated using Kedro 0.18.4
 
 import logging
 from ast import literal_eval
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Any
+import re
 import pandas as pd
+import plotly.graph_objs as go
 import pyspark.sql
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as f
@@ -78,9 +80,6 @@ def player_cluster_activity_concatenator(
             ratio_name, ratio_agg(f.col(ret_num), f.col(ret_den))
         )
 
-    # print(f"Player Metadata has {8162} unique player tags")
-    # print(f"User Activity Data has {9464} unique player tags")
-
     # Reorder dataframe, reformat the cluster labels and send to data to driver
     player_clustered_activity = (
         player_clustered_activity.orderBy(f.asc("first_log"), f.asc("cluster_labels"))
@@ -115,3 +114,107 @@ def ratio_agg(ret_num, ret_den):
         return float(ret_num) / float(ret_den)
     else:
         return float(0)
+
+
+def user_retention_plot_gen(
+    player_clustered_activity: pd.DataFrame, parameters: Dict[str, Any]
+) -> pyspark.sql.DataFrame:
+    """
+    Generate a user retention plot for a given player clustered activity dataframe.
+    Args:
+        player_clustered_activity: Dataframe containing player clustered activity
+        with retention values.
+        parameters: A dictionary containing plot format parameters.
+    Returns:
+        Plotly figure representing the user retention plot
+    """
+    # Extract the number of days to filter based on the 'last_days_filter' parameter
+    days = parameters.get("last_days_filter")
+
+    # Subset the columns that contain User retention values using a regular expression
+    retention_columns = [
+        col_name
+        for col_name in player_clustered_activity.columns
+        if re.match(r"D\d+R", col_name)
+    ]
+
+    # Group the player clustered activity by date and sum up retention values
+    player_clusters_grouped = (
+        player_clustered_activity.groupby(["cluster_labels", "first_log"])
+        .sum()
+        .reset_index()
+    )
+
+    # Convert the date strings to datetime objects
+    player_clusters_grouped["first_log"] = pd.to_datetime(
+        player_clusters_grouped["first_log"]
+    )
+
+    # Find the most recent date in the 'first_log' column
+    most_recent_date = player_clusters_grouped["first_log"].max()
+
+    # Subset the dataframe to include only the data for the last 'days' number of days
+    last_days = most_recent_date - pd.Timedelta(days=days)
+    player_clusters_grouped = player_clusters_grouped[
+        player_clusters_grouped["first_log"] >= last_days
+    ]
+
+    # Create a Plotly figure
+    fig = go.Figure()
+    # Create a barchart trace for each retention feature
+    for i in retention_columns:
+        fig.add_trace(
+            go.Bar(
+                x=player_clusters_grouped["first_log"],
+                y=player_clusters_grouped[i],
+                name=i,
+                visible=True,
+            )
+        )
+
+    # Get the plot dimensions from the 'plot_dimensions' parameter
+    plot_dimensions = parameters.get("plot_dimensions")
+
+    # Set the layout for the barchart
+    fig.update_layout(
+        title=f"User Retention by Date, for last {days} days",
+        xaxis_title="Date",
+        yaxis_title="Retention",
+        barmode="group",
+        width=plot_dimensions.get("width"),
+        height=plot_dimensions.get("height"),
+    )
+
+    # Define filter options for the dropdown menu
+    filter_options = [
+        {
+            "label": "All player clusters",
+            "method": "update",
+            "args": [{"visible": True}],
+        }
+    ]
+    for cluster in player_clusters_grouped["cluster_labels"].unique():
+        option = {
+            "label": f"Cluster {cluster}",
+            "method": "update",
+            "args": [{"visible": player_clusters_grouped["cluster_labels"] == cluster}],
+        }
+        filter_options.append(option)
+
+    # Add the filter dropdown menu to the layout
+    fig.update_layout(
+        updatemenus=[
+            go.layout.Updatemenu(
+                buttons=filter_options,
+                direction="left",
+                pad={"r": 10, "t": 10},
+                showactive=True,
+                x=1.0,
+                xanchor="left",
+                y=1.18,
+                yanchor="top",
+            )
+        ]
+    )
+
+    return fig
