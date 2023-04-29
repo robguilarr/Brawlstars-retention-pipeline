@@ -1,0 +1,11 @@
+# This is a boilerplate parameters config generated for pipeline 'player_cluster_activity_merge'
+# using Kedro 0.18.4.
+#
+# Documentation for this file format can be found in "Parameters"
+# Link: https://kedro.readthedocs.io/en/0.18.4/kedro_project_setup/configuration.html#parameters
+
+user_retention_plot_gen:
+  last_days_filter: 30
+  plot_dimensions:
+    width: 500
+    height: 500

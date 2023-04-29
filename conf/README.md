@@ -1,4 +1,4 @@
-# What is this for?
+# Environment configuration
 
 This folder should be used to store configuration files used by Kedro or by separate tools.
 
@@ -16,9 +16,24 @@ The `base` folder is for shared configuration, such as non-sensitive and project
 
 WARNING: Please do not put access credentials in the base configuration folder.
 
+## Google Cloud configuration
+
+The `gcp` folder is for shared configuration, such as non-sensitive and  
+project-related configuration that may be shared across team members.
+
+WARNING: Please do not put access credentials in the gcp configuration folder.
+
 ## Instructions
 
+Use the next node execution command as example
 
+On Base environment (for local usage)
+
+`python3 -m kedro run --node user_retention_plot_gen_node --env=base`
+
+On GCP environment
+
+`python3 -m kedro run --node user_retention_plot_gen_node --env=gcp`
 
 
 

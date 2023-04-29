@@ -15,6 +15,9 @@ _pyspark: &pyspark
     mode: overwrite
     sep: ','
     header: True
+  credentials:
+    project_id: ${gcp.project_id}
+    credentials_file: ${env:GOOGLE_APPLICATION_CREDENTIALS}
 
 _pandas: &pandas
   type: pandas.CSVDataSet
@@ -22,127 +25,146 @@ _pandas: &pandas
     sep: ","
   save_args:
     index: False
+  fs_args:
+    project: ${gcp.project_id}
 
 _plotly: &plotly
   type: plotly.JSONDataSet
   versioned: true
   save_args:
     engine: auto
+  fs_args:
+    project: ${gcp.project_id}
 
 player_tags_txt:
   type: text.TextDataSet
-  filepath: ${data.player_tags}/tags.txt
+  filepath: ${gcp.player_tags}/tags.txt
+  fs_args:
+    project: ${gcp.project_id}
 
 raw_battlelogs_data@pandas:
   <<: *pandas
-  filepath: ${data.raw_battlelogs}/raw_battlelogs.csv
+  filepath: ${gcp.raw_battlelogs}/raw_battlelogs.csv
 
 battlelogs_filtered_data@pyspark:
   <<: *pyspark
-  filepath: ${data.raw_battlelogs}/battlelogs_filtered.parquet
+  filepath: ${gcp.raw_battlelogs}/battlelogs_filtered.parquet
 
 player_metadata@pandas:
   <<: *pandas
-  filepath: ${data.raw_metadata}/player_metadata.csv
+  filepath: ${gcp.raw_metadata}/player_metadata.csv
 
 metadata_prepared@pandas:
   <<: *pandas
-  filepath: ${data.raw_metadata}/metadata_prepared.csv
+  filepath: ${gcp.raw_metadata}/metadata_prepared.csv
 
 # -------- Player Classifier Data --------
 
 metadata_scaled@pandas:
   <<: *pandas
-  filepath: ${data.raw_metadata}/metadata_scaled.csv
+  filepath: ${gcp.raw_metadata}/metadata_scaled.csv
 
 metadata_reduced@pandas:
   <<: *pandas
-  filepath: ${data.feature_store}/metadata_reduced.csv
+  filepath: ${gcp.feature_store}/metadata_reduced.csv
 
 features_selected:
   type: tracking.JSONDataSet
-  filepath: ${data.feature_store}/features_selected.json
+  filepath: ${gcp.feature_store}/features_selected.json
+  fs_args:
+    project: ${gcp.project_id}
+  credentials: None
 
 best_params_KMeans:
   type: tracking.JSONDataSet
-  filepath: ${data.model_registry}/best_params_KMeans.json
+  filepath: ${gcp.model_registry}/best_params_KMeans.json
+  fs_args:
+    project: ${gcp.project_id}
+  credentials: None
 
 eval_params_KMeans:
   type: tracking.JSONDataSet
-  filepath: ${data.model_registry}/eval_params_KMeans.json
+  filepath: ${gcp.model_registry}/eval_params_KMeans.json
+  fs_args:
+    project: ${gcp.project_id}
+  credentials: None
 
 inertia_plot:
   <<: *plotly
-  filepath: ${data.viz_data}/inertia_plot.json
+  filepath: ${gcp.viz_data}/inertia_plot.json
 
 kmeans_estimator:
   type: pickle.PickleDataSet
-  filepath: ${data.model_registry}/kmeans_estimator.pkl
+  filepath: ${gcp.model_registry}/kmeans_estimator.pkl
   load_args:
     fix_imports: true
     encoding: 'bytes'
   save_args:
     fix_imports: true
     protocol: 4
+  fs_args:
+    project: ${gcp.project_id}
 
 metrics_KMeans:
   type: tracking.MetricsDataSet
-  filepath: ${data.model_registry}/metrics_KMeans.json
+  filepath: ${gcp.model_registry}/metrics_KMeans.json
+  fs_args:
+    project: ${gcp.project_id}
 
 players_metadata_clustered@pandas:
   <<: *pandas
-  filepath: ${data.enriched_data}/players_metadata_clustered.csv
+  filepath: ${gcp.enriched_data}/players_metadata_clustered.csv
 
 # -------- Event Data & Activity --------
 
 event_solo_data@pyspark:
   <<: *pyspark
-  filepath: ${data.enriched_data}/event_types_data/event_solo_data.parquet
+  filepath: ${gcp.enriched_data}/event_types_data/event_solo_data.parquet
 
 event_duo_data@pyspark:
   <<: *pyspark
-  filepath: ${data.enriched_data}/event_types_data/event_duo_data.parquet
+  filepath: ${gcp.enriched_data}/event_types_data/event_duo_data.parquet
 
 event_3v3_data@pyspark:
   <<: *pyspark
-  filepath: ${data.enriched_data}/event_types_data/event_3v3_data.parquet
+  filepath: ${gcp.enriched_data}/event_types_data/event_3v3_data.parquet
 
 event_special_data@pyspark:
   <<: *pyspark
-  filepath: ${data.enriched_data}/event_types_data/event_special_data.parquet
+  filepath: ${gcp.enriched_data}/event_types_data/event_special_data.parquet
 
 user_activity_data@pyspark:
   <<: *pyspark
-  filepath: ${data.enriched_data}/user_activity_data.parquet
+  filepath: ${gcp.enriched_data}/user_activity_data.parquet
 
 player_clustered_activity@pandas:
   <<: *pandas
-  filepath: ${data.curated_data}/player_clustered_activity.csv
+  filepath: ${gcp.curated_data}/player_clustered_activity.csv
 
 cohort_activity_data@pyspark:
   <<: *pyspark
-  filepath: ${data.curated_data}/cohort_activity_data.parquet
+  filepath: ${gcp.curated_data}/cohort_activity_data.parquet
 
 # -------- Centroids Plots --------
 
 centroid_plot_1:
   <<: *plotly
-  filepath: ${data.viz_data}/centroid_plot_1.json
+  filepath: ${gcp.viz_data}/centroid_plot_1.json
 
 centroid_plot_2:
   <<: *plotly
-  filepath: ${data.viz_data}/centroid_plot_2.json
+  filepath: ${gcp.viz_data}/centroid_plot_2.json
 
 centroid_plot_3:
   <<: *plotly
-  filepath: ${data.viz_data}/centroid_plot_3.json
+  filepath: ${gcp.viz_data}/centroid_plot_3.json
 
 centroid_plot_4:
   <<: *plotly
-  filepath: ${data.viz_data}/centroid_plot_4.json
+  filepath: ${gcp.viz_data}/centroid_plot_4.json
 
 # -------- User Retention Plot --------
 
 user_retention_plot:
   <<: *plotly
-  filepath: ${data.viz_data}/user_retention_plot.json
+  filepath: ${gcp.viz_data}/user_retention_plot.json
