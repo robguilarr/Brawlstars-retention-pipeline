@@ -1,20 +1,11 @@
 # Parameter to include and load based on TemplatedConfigLoader from src/<package_name>/settings.py
 data:
-    player_tags: "data/01_player_tags"
-    raw_battlelogs: "data/02_raw_battlelogs"
-    raw_metadata: "data/03_raw_metadata"
-    enriched_data: "data/04_enriched_data"
-    curated_data: "data/05_curated_data"
-    viz_data: "data/06_viz_data"
-    feature_store: "data/07_feature_store"
-    model_registry: "data/08_model_registry"
-
-gcp:
-    player_tags: "gs://my-bucket/brawlstars_project_data/01_player_tags"
-    raw_battlelogs: "gs://my-bucket/brawlstars_project_data/02_raw_battlelogs"
-    raw_metadata: "gs://my-bucket/brawlstars_project_data/03_raw_metadata"
-    enriched_data: "gs://my-bucket/brawlstars_project_data/04_enriched_data"
-    curated_data: "gs://my-bucket/brawlstars_project_data/05_curated_data"
-    viz_data: "gs://my-bucket/brawlstars_project_data/06_viz_data"
-    feature_store: "gs://my-bucket/brawlstars_project_data/07_feature_store"
-    model_registry: "gs://my-bucket/brawlstars_project_data/08_model_registry"
+    # ----- Base Files Locations -----
+    player_tags: data/01_player_tags
+    raw_battlelogs: data/02_raw_battlelogs
+    raw_metadata: data/03_raw_metadata
+    enriched_data: data/04_enriched_data
+    curated_data: data/05_curated_data
+    viz_data: data/06_viz_data
+    feature_store: data/07_feature_store
+    model_registry: data/08_model_registry

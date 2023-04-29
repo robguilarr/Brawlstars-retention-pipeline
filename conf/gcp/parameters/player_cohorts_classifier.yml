@@ -1,0 +1,31 @@
+# This is a boilerplate parameters config generated for pipeline 'player_cohorts_classifier'
+# using Kedro 0.18.4.
+#
+# Documentation for this file format can be found in "Parameters"
+# Link: https://kedro.readthedocs.io/en/0.18.4/kedro_project_setup/configuration.html#parameters
+
+# ----- Parameters for feature selector ----
+feature_selector:
+  top_features: 4
+
+
+# ----- Parameters for player clustering ----
+kmeans_estimator_grid_search:
+  random_state: 42
+  max_n_cluster: 13
+  starting_point_method: ["k-means++"]
+  max_iter: [200]
+  distortion_tol: [0.0001]
+  cross_validations: 5
+  cores: -1
+  # Inertia plot dimensions in px
+  plot_dimensions:
+    width: 500
+    height: 500
+
+
+# ----- Parameters for centroids plotting ----
+centroid_plot_generator:
+  plot_dimensions:
+    width: 500
+    height: 500

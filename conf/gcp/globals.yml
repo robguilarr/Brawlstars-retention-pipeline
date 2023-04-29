@@ -1,0 +1,14 @@
+# Parameter to include and load based on TemplatedConfigLoader from src/<package_name>/settings.py
+gcp:
+    # ----- Bucket Parent Locations -----
+    player_tags: gs://third-echelon-bucket/brawlstars/01_player_tags
+    raw_battlelogs: gs://third-echelon-bucket/brawlstars/02_raw_battlelogs
+    raw_metadata: gs://third-echelon-bucket/brawlstars/03_raw_metadata
+    enriched_data: gs://third-echelon-bucket/brawlstars/04_enriched_data
+    curated_data: gs://third-echelon-bucket/brawlstars/05_curated_data
+    viz_data: gs://third-echelon-bucket/brawlstars/06_viz_data
+    feature_store: gs://third-echelon-bucket/brawlstars/07_feature_store
+    model_registry: gs://third-echelon-bucket/brawlstars/08_model_registry
+
+    # ----- Main GCP Project ID -----
+    project_id: third-echelon-117

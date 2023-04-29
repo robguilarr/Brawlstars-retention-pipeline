@@ -1,0 +1,32 @@
+# This is a boilerplate parameters config generated for pipeline 'metadata_request_preprocess'
+# using Kedro 0.18.4.
+#
+# Documentation for this file format can be found in "Parameters"
+# Link: https://kedro.readthedocs.io/en/0.18.4/kedro_project_setup/configuration.html#parameters
+# DDL: https://docs.databricks.com/sql/language-manual/sql-ref-datatype-rules.html#type-precedence-graph
+
+# ----- Parameters for metadata request ----
+player_metadata_request:
+  metadata_limit:
+
+# ----- Parameters to format metadata ----
+metadata_preparation:
+  metadata_schema:
+    - "player_id STRING,
+      name STRING,
+      nameColor STRING,
+      trophies BIGINT,
+      highestTrophies BIGINT,
+      highestPowerPlayPoints DOUBLE,
+      expLevel BIGINT,
+      expPoints BIGINT,
+      isQualifiedFromChampionshipChallenge BOOLEAN,
+      3vs3Victories BIGINT,
+      soloVictories BIGINT,
+      duoVictories BIGINT,
+      bestRoboRumbleTime BIGINT,
+      bestTimeAsBigBrawler BIGINT,
+      brawlers STRING,
+      icon_id BIGINT,
+      club_tag STRING,
+      club_name STRING"
