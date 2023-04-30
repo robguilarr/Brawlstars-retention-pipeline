@@ -15,9 +15,6 @@ _pyspark: &pyspark
     mode: overwrite
     sep: ','
     header: True
-  credentials:
-    project_id: ${gcp.project_id}
-    credentials_file: ${env:GOOGLE_APPLICATION_CREDENTIALS}
 
 _pandas: &pandas
   type: pandas.CSVDataSet
@@ -73,21 +70,18 @@ features_selected:
   filepath: ${gcp.feature_store}/features_selected.json
   fs_args:
     project: ${gcp.project_id}
-  credentials: None
 
 best_params_KMeans:
   type: tracking.JSONDataSet
   filepath: ${gcp.model_registry}/best_params_KMeans.json
   fs_args:
     project: ${gcp.project_id}
-  credentials: None
 
 eval_params_KMeans:
   type: tracking.JSONDataSet
   filepath: ${gcp.model_registry}/eval_params_KMeans.json
   fs_args:
     project: ${gcp.project_id}
-  credentials: None
 
 inertia_plot:
   <<: *plotly
