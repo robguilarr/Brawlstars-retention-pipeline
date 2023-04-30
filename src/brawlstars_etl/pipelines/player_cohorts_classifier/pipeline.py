@@ -14,6 +14,7 @@ from .nodes import (
 
 
 def create_pipeline(**kwargs) -> Pipeline:
+    namespace = "Player Cohorts Clustering"
     player_cohorts_classifier = pipeline(
         [
             node(
@@ -21,12 +22,14 @@ def create_pipeline(**kwargs) -> Pipeline:
                 inputs=["metadata_prepared@pandas"],
                 outputs="metadata_scaled@pandas",
                 name="feature_scaler_node",
+                namespace=namespace,
             ),
             node(
                 func=feature_selector,
                 inputs=["metadata_scaled@pandas", "params:feature_selector"],
                 outputs=["metadata_reduced@pandas", "features_selected"],
                 name="feature_selector_node",
+                namespace=namespace,
             ),
             node(
                 func=kmeans_estimator_grid_search,
@@ -41,6 +44,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                     "inertia_plot",
                 ],
                 name="kmeans_estimator_grid_search_node",
+                namespace=namespace,
             ),
             node(
                 func=kmeans_inference,
@@ -50,6 +54,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                     "metrics_KMeans",
                 ],
                 name="kmeans_inference_node",
+                namespace=namespace,
             ),
             node(
                 func=centroid_plot_generator,
@@ -65,6 +70,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                     "centroid_plot_4",
                 ],
                 name="centroid_plot_generator_node",
+                namespace=namespace,
             ),
         ]
     )

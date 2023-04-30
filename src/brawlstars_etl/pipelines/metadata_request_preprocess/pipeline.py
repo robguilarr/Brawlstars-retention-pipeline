@@ -7,6 +7,7 @@ from .nodes import players_info_request, metadata_preparation
 
 
 def create_pipeline(**kwargs) -> Pipeline:
+    namespace = "Metadata Request & Preprocess"
     metadata_request_preprocess = pipeline(
         [
             node(
@@ -14,12 +15,14 @@ def create_pipeline(**kwargs) -> Pipeline:
                 inputs=["player_tags_txt", "params:player_metadata_request"],
                 outputs="player_metadata@pandas",
                 name="player_metadata_request_node",
+                namespace=namespace,
             ),
             node(
                 func=metadata_preparation,
                 inputs=["player_metadata@pandas", "params:metadata_preparation"],
                 outputs="metadata_prepared@pandas",
                 name="metadata_preparation_node",
+                namespace=namespace,
             ),
         ]
     )

@@ -8,6 +8,7 @@ from .nodes import battlelogs_deconstructor, activity_transformer, ratio_registe
 
 
 def create_pipeline(**kwargs) -> Pipeline:
+    namespace = "Event Activity Segmentation"
     events_activity_segmentation = pipeline(
         [
             node(
@@ -23,6 +24,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                     "event_special_data@pyspark",
                 ],
                 name="battlelogs_deconstructor_node",
+                namespace=namespace,
             ),
             node(
                 func=activity_transformer,
@@ -32,6 +34,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 ],
                 outputs="user_activity_data@pyspark",
                 name="activity_transformer_node",
+                namespace=namespace,
             ),
             node(
                 func=ratio_register,
@@ -42,6 +45,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 ],
                 outputs="cohort_activity_data@pyspark",
                 name="ratio_register_node",
+                namespace=namespace,
             ),
         ]
     )

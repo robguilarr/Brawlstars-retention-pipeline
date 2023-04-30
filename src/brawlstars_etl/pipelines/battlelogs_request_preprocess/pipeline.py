@@ -7,6 +7,7 @@ from .nodes import battlelogs_request, battlelogs_filter
 
 
 def create_pipeline(**kwargs) -> Pipeline:
+    namespace = "Battlelogs Request & Preprocess"
     battlelogs_request_preprocess = pipeline(
         [
             node(
@@ -14,12 +15,14 @@ def create_pipeline(**kwargs) -> Pipeline:
                 inputs=["player_tags_txt", "params:battlelogs_request"],
                 outputs="raw_battlelogs_data@pandas",
                 name="battlelogs_request_node",
+                namespace=namespace,
             ),
             node(
                 func=battlelogs_filter,
                 inputs=["raw_battlelogs_data@pandas", "params:battlelogs_filter"],
                 outputs="battlelogs_filtered_data@pyspark",
                 name="battlelogs_filter_node",
+                namespace=namespace,
             ),
         ]
     )

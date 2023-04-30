@@ -4,6 +4,7 @@ https://kedro.readthedocs.io/en/stable/kedro_project_setup/settings.html."""
 
 # Instantiated project hooks. Hooks are defined as classes inside hooks.py
 from brawlstars_etl.hooks import SparkHooks
+
 HOOKS = (SparkHooks(),)
 
 # Enable Kedro Experiment Tracking feature
@@ -33,6 +34,7 @@ SESSION_STORE_ARGS = {"path": str(Path(__file__).parents[2] / "data")}
 
 # Class that manages how configuration is loaded.
 from kedro.config import TemplatedConfigLoader
+
 CONFIG_LOADER_CLASS = TemplatedConfigLoader
 
 # Set the template parameters for our use case:

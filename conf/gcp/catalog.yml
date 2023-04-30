@@ -32,56 +32,67 @@ _plotly: &plotly
     engine: auto
   fs_args:
     project: ${gcp.project_id}
+  layer: "reporting"
 
 player_tags_txt:
   type: text.TextDataSet
   filepath: ${gcp.player_tags}/tags.txt
   fs_args:
     project: ${gcp.project_id}
+  layer: "raw"
 
 raw_battlelogs_data@pandas:
   <<: *pandas
   filepath: ${gcp.raw_battlelogs}/raw_battlelogs.csv
+  layer: "raw"
 
 battlelogs_filtered_data@pyspark:
   <<: *pyspark
   filepath: ${gcp.raw_battlelogs}/battlelogs_filtered.parquet
+  layer: "primary"
 
 player_metadata@pandas:
   <<: *pandas
   filepath: ${gcp.raw_metadata}/player_metadata.csv
+  layer: "raw"
 
 metadata_prepared@pandas:
   <<: *pandas
   filepath: ${gcp.raw_metadata}/metadata_prepared.csv
+  layer: "primary"
 
 # -------- Player Classifier Data --------
 
 metadata_scaled@pandas:
   <<: *pandas
   filepath: ${gcp.raw_metadata}/metadata_scaled.csv
+  layer: "model input"
 
 metadata_reduced@pandas:
   <<: *pandas
   filepath: ${gcp.feature_store}/metadata_reduced.csv
+  layer: "feature"
 
 features_selected:
   type: tracking.JSONDataSet
   filepath: ${gcp.feature_store}/features_selected.json
   fs_args:
     project: ${gcp.project_id}
+  layer: "feature"
 
 best_params_KMeans:
   type: tracking.JSONDataSet
   filepath: ${gcp.model_registry}/best_params_KMeans.json
   fs_args:
     project: ${gcp.project_id}
+  layer: "models"
 
 eval_params_KMeans:
   type: tracking.JSONDataSet
   filepath: ${gcp.model_registry}/eval_params_KMeans.json
   fs_args:
     project: ${gcp.project_id}
+  layer: "models"
 
 inertia_plot:
   <<: *plotly
@@ -98,46 +109,56 @@ kmeans_estimator:
     protocol: 4
   fs_args:
     project: ${gcp.project_id}
+  layer: "models"
 
 metrics_KMeans:
   type: tracking.MetricsDataSet
   filepath: ${gcp.model_registry}/metrics_KMeans.json
   fs_args:
     project: ${gcp.project_id}
+  layer: "model output"
 
 players_metadata_clustered@pandas:
   <<: *pandas
   filepath: ${gcp.enriched_data}/players_metadata_clustered.csv
+  layer: "model output"
 
 # -------- Event Data & Activity --------
 
 event_solo_data@pyspark:
   <<: *pyspark
   filepath: ${gcp.enriched_data}/event_types_data/event_solo_data.parquet
+  layer: "primary"
 
 event_duo_data@pyspark:
   <<: *pyspark
   filepath: ${gcp.enriched_data}/event_types_data/event_duo_data.parquet
+  layer: "primary"
 
 event_3v3_data@pyspark:
   <<: *pyspark
   filepath: ${gcp.enriched_data}/event_types_data/event_3v3_data.parquet
+  layer: "primary"
 
 event_special_data@pyspark:
   <<: *pyspark
   filepath: ${gcp.enriched_data}/event_types_data/event_special_data.parquet
+  layer: "primary"
 
 user_activity_data@pyspark:
   <<: *pyspark
   filepath: ${gcp.enriched_data}/user_activity_data.parquet
+  layer: "primary"
 
 player_clustered_activity@pandas:
   <<: *pandas
   filepath: ${gcp.curated_data}/player_clustered_activity.csv
+  layer: "model output"
 
 cohort_activity_data@pyspark:
   <<: *pyspark
   filepath: ${gcp.curated_data}/cohort_activity_data.parquet
+  layer: "primary"
 
 # -------- Centroids Plots --------
 

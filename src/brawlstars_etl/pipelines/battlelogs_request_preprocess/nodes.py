@@ -48,7 +48,7 @@ def battlelogs_request(
         assert API_KEY is not None
     except AssertionError:
         log.info(
-         "No API key has been defined. Request one at https://developer.brawlstars.com/"
+            "No API key has been defined. Request one at https://developer.brawlstars.com/"
         )
 
     # Create a BrawlStats client object to interact with the API. Note: the
