@@ -6,12 +6,12 @@
       "full_name": "battlelogs_request_node",
       "tags": [],
       "pipelines": [
-        "battlelogs_request_preprocess",
-        "__default__"
+        "__default__",
+        "battlelogs_request_preprocess"
       ],
       "type": "task",
       "modular_pipelines": [
-        "Battlelogs Request & Preprocess"
+        "battlelogs_request_preprocess"
       ],
       "parameters": {
         "battlelogs_request": {
@@ -25,9 +25,9 @@
       "full_name": "player_tags_txt",
       "tags": [],
       "pipelines": [
+        "__default__",
         "metadata_request_preprocess",
-        "battlelogs_request_preprocess",
-        "__default__"
+        "battlelogs_request_preprocess"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -40,8 +40,8 @@
       "full_name": "params:battlelogs_request",
       "tags": [],
       "pipelines": [
-        "battlelogs_request_preprocess",
-        "__default__"
+        "__default__",
+        "battlelogs_request_preprocess"
       ],
       "type": "parameters",
       "modular_pipelines": [],
@@ -54,8 +54,8 @@
       "full_name": "raw_battlelogs_data",
       "tags": [],
       "pipelines": [
-        "battlelogs_request_preprocess",
-        "__default__"
+        "__default__",
+        "battlelogs_request_preprocess"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -68,12 +68,12 @@
       "full_name": "player_metadata_request_node",
       "tags": [],
       "pipelines": [
-        "metadata_request_preprocess",
-        "__default__"
+        "__default__",
+        "metadata_request_preprocess"
       ],
       "type": "task",
       "modular_pipelines": [
-        "Metadata Request & Preprocess"
+        "metadata_request_preprocess"
       ],
       "parameters": {
         "player_metadata_request": {
@@ -87,8 +87,8 @@
       "full_name": "params:player_metadata_request",
       "tags": [],
       "pipelines": [
-        "metadata_request_preprocess",
-        "__default__"
+        "__default__",
+        "metadata_request_preprocess"
       ],
       "type": "parameters",
       "modular_pipelines": [],
@@ -101,8 +101,8 @@
       "full_name": "player_metadata",
       "tags": [],
       "pipelines": [
-        "metadata_request_preprocess",
-        "__default__"
+        "__default__",
+        "metadata_request_preprocess"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -115,12 +115,12 @@
       "full_name": "battlelogs_filter_node",
       "tags": [],
       "pipelines": [
-        "battlelogs_request_preprocess",
-        "__default__"
+        "__default__",
+        "battlelogs_request_preprocess"
       ],
       "type": "task",
       "modular_pipelines": [
-        "Battlelogs Request & Preprocess"
+        "battlelogs_request_preprocess"
       ],
       "parameters": {
         "battlelogs_filter": {
@@ -147,8 +147,8 @@
       "full_name": "params:battlelogs_filter",
       "tags": [],
       "pipelines": [
-        "battlelogs_request_preprocess",
-        "__default__"
+        "__default__",
+        "battlelogs_request_preprocess"
       ],
       "type": "parameters",
       "modular_pipelines": [],
@@ -161,9 +161,9 @@
       "full_name": "battlelogs_filtered_data",
       "tags": [],
       "pipelines": [
+        "__default__",
         "events_activity_segmentation",
-        "battlelogs_request_preprocess",
-        "__default__"
+        "battlelogs_request_preprocess"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -176,12 +176,12 @@
       "full_name": "metadata_preparation_node",
       "tags": [],
       "pipelines": [
-        "metadata_request_preprocess",
-        "__default__"
+        "__default__",
+        "metadata_request_preprocess"
       ],
       "type": "task",
       "modular_pipelines": [
-        "Metadata Request & Preprocess"
+        "metadata_request_preprocess"
       ],
       "parameters": {
         "metadata_preparation": {
@@ -197,8 +197,8 @@
       "full_name": "params:metadata_preparation",
       "tags": [],
       "pipelines": [
-        "metadata_request_preprocess",
-        "__default__"
+        "__default__",
+        "metadata_request_preprocess"
       ],
       "type": "parameters",
       "modular_pipelines": [],
@@ -211,9 +211,9 @@
       "full_name": "metadata_prepared",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
+        "__default__",
         "metadata_request_preprocess",
-        "__default__"
+        "player_cohorts_classifier"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -226,8 +226,8 @@
       "full_name": "activity_transformer_node",
       "tags": [],
       "pipelines": [
-        "events_activity_segmentation",
-        "__default__"
+        "__default__",
+        "events_activity_segmentation"
       ],
       "type": "task",
       "modular_pipelines": [
@@ -254,9 +254,9 @@
       "full_name": "params:activity_transformer",
       "tags": [],
       "pipelines": [
+        "__default__",
         "player_cluster_activity_merge",
-        "events_activity_segmentation",
-        "__default__"
+        "events_activity_segmentation"
       ],
       "type": "parameters",
       "modular_pipelines": [],
@@ -269,9 +269,9 @@
       "full_name": "user_activity_data",
       "tags": [],
       "pipelines": [
+        "__default__",
         "player_cluster_activity_merge",
-        "events_activity_segmentation",
-        "__default__"
+        "events_activity_segmentation"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -284,8 +284,8 @@
       "full_name": "battlelogs_deconstructor_node",
       "tags": [],
       "pipelines": [
-        "events_activity_segmentation",
-        "__default__"
+        "__default__",
+        "events_activity_segmentation"
       ],
       "type": "task",
       "modular_pipelines": [
@@ -338,8 +338,8 @@
       "full_name": "params:battlelogs_deconstructor",
       "tags": [],
       "pipelines": [
-        "events_activity_segmentation",
-        "__default__"
+        "__default__",
+        "events_activity_segmentation"
       ],
       "type": "parameters",
       "modular_pipelines": [],
@@ -352,8 +352,8 @@
       "full_name": "event_solo_data",
       "tags": [],
       "pipelines": [
-        "events_activity_segmentation",
-        "__default__"
+        "__default__",
+        "events_activity_segmentation"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -366,8 +366,8 @@
       "full_name": "event_duo_data",
       "tags": [],
       "pipelines": [
-        "events_activity_segmentation",
-        "__default__"
+        "__default__",
+        "events_activity_segmentation"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -380,8 +380,8 @@
       "full_name": "event_3v3_data",
       "tags": [],
       "pipelines": [
-        "events_activity_segmentation",
-        "__default__"
+        "__default__",
+        "events_activity_segmentation"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -394,8 +394,8 @@
       "full_name": "event_special_data",
       "tags": [],
       "pipelines": [
-        "events_activity_segmentation",
-        "__default__"
+        "__default__",
+        "events_activity_segmentation"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -408,12 +408,12 @@
       "full_name": "feature_scaler_node",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "task",
       "modular_pipelines": [
-        "Player Cohorts Clustering"
+        "player_cohorts_classifier"
       ],
       "parameters": {}
     },
@@ -423,8 +423,8 @@
       "full_name": "metadata_scaled",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -437,8 +437,8 @@
       "full_name": "ratio_register_node",
       "tags": [],
       "pipelines": [
-        "events_activity_segmentation",
-        "__default__"
+        "__default__",
+        "events_activity_segmentation"
       ],
       "type": "task",
       "modular_pipelines": [
@@ -480,9 +480,9 @@
       "full_name": "params:ratio_register",
       "tags": [],
       "pipelines": [
+        "__default__",
         "player_cluster_activity_merge",
-        "events_activity_segmentation",
-        "__default__"
+        "events_activity_segmentation"
       ],
       "type": "parameters",
       "modular_pipelines": [],
@@ -495,8 +495,8 @@
       "full_name": "cohort_activity_data",
       "tags": [],
       "pipelines": [
-        "events_activity_segmentation",
-        "__default__"
+        "__default__",
+        "events_activity_segmentation"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -509,12 +509,12 @@
       "full_name": "feature_selector_node",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "task",
       "modular_pipelines": [
-        "Player Cohorts Clustering"
+        "player_cohorts_classifier"
       ],
       "parameters": {
         "feature_selector": {
@@ -528,8 +528,8 @@
       "full_name": "params:feature_selector",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "parameters",
       "modular_pipelines": [],
@@ -542,8 +542,8 @@
       "full_name": "metadata_reduced",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -556,8 +556,8 @@
       "full_name": "features_selected",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -570,12 +570,12 @@
       "full_name": "kmeans_estimator_grid_search_node",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "task",
       "modular_pipelines": [
-        "Player Cohorts Clustering"
+        "player_cohorts_classifier"
       ],
       "parameters": {
         "kmeans_estimator_grid_search": {
@@ -605,8 +605,8 @@
       "full_name": "params:kmeans_estimator_grid_search",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "parameters",
       "modular_pipelines": [],
@@ -619,8 +619,8 @@
       "full_name": "kmeans_estimator",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -633,8 +633,8 @@
       "full_name": "best_params_KMeans",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -647,8 +647,8 @@
       "full_name": "eval_params_KMeans",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -661,8 +661,8 @@
       "full_name": "inertia_plot",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -675,12 +675,12 @@
       "full_name": "centroid_plot_generator_node",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "task",
       "modular_pipelines": [
-        "Player Cohorts Clustering"
+        "player_cohorts_classifier"
       ],
       "parameters": {
         "centroid_plot_generator": {
@@ -697,8 +697,8 @@
       "full_name": "params:centroid_plot_generator",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "parameters",
       "modular_pipelines": [],
@@ -711,8 +711,8 @@
       "full_name": "centroid_plot_1",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -725,8 +725,8 @@
       "full_name": "centroid_plot_2",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -739,8 +739,8 @@
       "full_name": "centroid_plot_3",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -753,8 +753,8 @@
       "full_name": "centroid_plot_4",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -767,12 +767,12 @@
       "full_name": "kmeans_inference_node",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "task",
       "modular_pipelines": [
-        "Player Cohorts Clustering"
+        "player_cohorts_classifier"
       ],
       "parameters": {}
     },
@@ -782,9 +782,9 @@
       "full_name": "players_metadata_clustered",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
+        "__default__",
         "player_cluster_activity_merge",
-        "__default__"
+        "player_cohorts_classifier"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -797,8 +797,8 @@
       "full_name": "metrics_KMeans",
       "tags": [],
       "pipelines": [
-        "player_cohorts_classifier",
-        "__default__"
+        "__default__",
+        "player_cohorts_classifier"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -811,12 +811,12 @@
       "full_name": "player_cluster_activity_concatenator_node",
       "tags": [],
       "pipelines": [
-        "player_cluster_activity_merge",
-        "__default__"
+        "__default__",
+        "player_cluster_activity_merge"
       ],
       "type": "task",
       "modular_pipelines": [
-        "Player Activity Clustering & Merge"
+        "player_activity_clustering_merge"
       ],
       "parameters": {
         "ratio_register": {
@@ -854,8 +854,8 @@
       "full_name": "player_clustered_activity",
       "tags": [],
       "pipelines": [
-        "player_cluster_activity_merge",
-        "__default__"
+        "__default__",
+        "player_cluster_activity_merge"
       ],
       "type": "data",
       "modular_pipelines": [],
@@ -868,12 +868,12 @@
       "full_name": "user_retention_plot_gen_node",
       "tags": [],
       "pipelines": [
-        "player_cluster_activity_merge",
-        "__default__"
+        "__default__",
+        "player_cluster_activity_merge"
       ],
       "type": "task",
       "modular_pipelines": [
-        "Player Activity Clustering & Merge"
+        "player_activity_clustering_merge"
       ],
       "parameters": {
         "user_retention_plot_gen": {
@@ -891,8 +891,8 @@
       "full_name": "params:user_retention_plot_gen",
       "tags": [],
       "pipelines": [
-        "player_cluster_activity_merge",
-        "__default__"
+        "__default__",
+        "player_cluster_activity_merge"
       ],
       "type": "parameters",
       "modular_pipelines": [],
@@ -905,26 +905,13 @@
       "full_name": "user_retention_plot",
       "tags": [],
       "pipelines": [
-        "player_cluster_activity_merge",
-        "__default__"
+        "__default__",
+        "player_cluster_activity_merge"
       ],
       "type": "data",
       "modular_pipelines": [],
       "layer": "reporting",
       "dataset_type": "plotly.json_dataset.JSONDataSet"
-    },
-    {
-      "id": "Battlelogs Request & Preprocess",
-      "name": "Battlelogs Request & Preprocess",
-      "full_name": "Battlelogs Request & Preprocess",
-      "tags": [],
-      "pipelines": [
-        "__default__"
-      ],
-      "type": "modularPipeline",
-      "modular_pipelines": null,
-      "layer": null,
-      "dataset_type": null
     },
     {
       "id": "Event Activity Segmentation",
@@ -940,9 +927,9 @@
       "dataset_type": null
     },
     {
-      "id": "Metadata Request & Preprocess",
-      "name": "Metadata Request & Preprocess",
-      "full_name": "Metadata Request & Preprocess",
+      "id": "battlelogs_request_preprocess",
+      "name": "Battlelogs Request Preprocess",
+      "full_name": "battlelogs_request_preprocess",
       "tags": [],
       "pipelines": [
         "__default__"
@@ -953,9 +940,9 @@
       "dataset_type": null
     },
     {
-      "id": "Player Activity Clustering & Merge",
-      "name": "Player Activity Clustering & Merge",
-      "full_name": "Player Activity Clustering & Merge",
+      "id": "metadata_request_preprocess",
+      "name": "Metadata Request Preprocess",
+      "full_name": "metadata_request_preprocess",
       "tags": [],
       "pipelines": [
         "__default__"
@@ -966,9 +953,22 @@
       "dataset_type": null
     },
     {
-      "id": "Player Cohorts Clustering",
-      "name": "Player Cohorts Clustering",
-      "full_name": "Player Cohorts Clustering",
+      "id": "player_activity_clustering_merge",
+      "name": "Player Activity Clustering Merge",
+      "full_name": "player_activity_clustering_merge",
+      "tags": [],
+      "pipelines": [
+        "__default__"
+      ],
+      "type": "modularPipeline",
+      "modular_pipelines": null,
+      "layer": null,
+      "dataset_type": null
+    },
+    {
+      "id": "player_cohorts_classifier",
+      "name": "Player Cohorts Classifier",
+      "full_name": "player_cohorts_classifier",
       "tags": [],
       "pipelines": [
         "__default__"
@@ -981,168 +981,40 @@
   ],
   "edges": [
     {
-      "source": "da3beba1",
-      "target": "9e9894b2"
-    },
-    {
-      "source": "Player Cohorts Clustering",
+      "source": "player_cohorts_classifier",
       "target": "5d38bbfe"
-    },
-    {
-      "source": "315532b6",
-      "target": "57685787"
-    },
-    {
-      "source": "bee15f29",
-      "target": "57685787"
-    },
-    {
-      "source": "7f21d6c8",
-      "target": "da3beba1"
-    },
-    {
-      "source": "4a43ea27",
-      "target": "Event Activity Segmentation"
     },
     {
       "source": "1443b0ff",
       "target": "11fa65a3"
     },
     {
-      "source": "315532b6",
-      "target": "24bf7874"
-    },
-    {
-      "source": "4a43ea27",
-      "target": "31cdb89a"
-    },
-    {
-      "source": "6d5dae8c",
-      "target": "65b0c4ea"
-    },
-    {
-      "source": "2ed8ea01",
-      "target": "5d38bbfe"
-    },
-    {
-      "source": "d8d3adcf",
-      "target": "65b0c4ea"
-    },
-    {
-      "source": "Player Cohorts Clustering",
-      "target": "77c5173f"
-    },
-    {
       "source": "Event Activity Segmentation",
-      "target": "11fa65a3"
+      "target": "6a07d090"
     },
     {
-      "source": "5d760be0",
-      "target": "Player Cohorts Clustering"
+      "source": "434493c0",
+      "target": "398885d8"
     },
     {
-      "source": "a9dcccd5",
-      "target": "63afde62"
-    },
-    {
-      "source": "4a43ea27",
-      "target": "1443b0ff"
-    },
-    {
-      "source": "5d38bbfe",
-      "target": "Player Activity Clustering & Merge"
-    },
-    {
-      "source": "a0631f6f",
-      "target": "a9dcccd5"
-    },
-    {
-      "source": "a9dcccd5",
-      "target": "d4e43cc1"
-    },
-    {
-      "source": "31556d1d",
-      "target": "Player Activity Clustering & Merge"
-    },
-    {
-      "source": "57685787",
-      "target": "67056c38"
-    },
-    {
-      "source": "Event Activity Segmentation",
-      "target": "b9d5d3ea"
-    },
-    {
-      "source": "130f32f3",
-      "target": "5d760be0"
-    },
-    {
-      "source": "f603f0e3",
-      "target": "93c7615e"
-    },
-    {
-      "source": "398885d8",
-      "target": "58c0e5dc"
+      "source": "21b17b66",
+      "target": "e9d0e540"
     },
     {
       "source": "31cdb89a",
       "target": "31556d1d"
     },
     {
-      "source": "7f21d6c8",
-      "target": "2ed8ea01"
-    },
-    {
-      "source": "3dd4bf7a",
-      "target": "Battlelogs Request & Preprocess"
-    },
-    {
-      "source": "Battlelogs Request & Preprocess",
-      "target": "4a43ea27"
-    },
-    {
-      "source": "Metadata Request & Preprocess",
-      "target": "5d760be0"
-    },
-    {
-      "source": "5d760be0",
-      "target": "f9164448"
-    },
-    {
-      "source": "Player Activity Clustering & Merge",
-      "target": "58c0e5dc"
-    },
-    {
-      "source": "6d5dae8c",
-      "target": "Event Activity Segmentation"
-    },
-    {
-      "source": "d8d3adcf",
-      "target": "Event Activity Segmentation"
-    },
-    {
-      "source": "434493c0",
-      "target": "Player Activity Clustering & Merge"
-    },
-    {
-      "source": "d4e43cc1",
-      "target": "da3beba1"
-    },
-    {
       "source": "d4e43cc1",
       "target": "f603f0e3"
     },
     {
-      "source": "24e07799",
-      "target": "Metadata Request & Preprocess"
+      "source": "1443b0ff",
+      "target": "6a07d090"
     },
     {
-      "source": "Player Cohorts Clustering",
-      "target": "93c7615e"
-    },
-    {
-      "source": "d3003e1e",
-      "target": "a9dcccd5"
+      "source": "3dd4bf7a",
+      "target": "e9d0e540"
     },
     {
       "source": "52081192",
@@ -1150,162 +1022,174 @@
     },
     {
       "source": "6d5dae8c",
-      "target": "31cdb89a"
-    },
-    {
-      "source": "31556d1d",
       "target": "65b0c4ea"
-    },
-    {
-      "source": "Player Cohorts Clustering",
-      "target": "11dfbc11"
-    },
-    {
-      "source": "1443b0ff",
-      "target": "d38b765a"
-    },
-    {
-      "source": "24e07799",
-      "target": "130f32f3"
     },
     {
       "source": "24bf7874",
       "target": "21b17b66"
     },
     {
-      "source": "11e28478",
-      "target": "Player Cohorts Clustering"
+      "source": "d8d3adcf",
+      "target": "04b70c18"
     },
     {
-      "source": "1443b0ff",
-      "target": "465a5e1b"
+      "source": "player_cohorts_classifier",
+      "target": "77c5173f"
+    },
+    {
+      "source": "d8d3adcf",
+      "target": "player_activity_clustering_merge"
     },
     {
       "source": "04b70c18",
       "target": "52081192"
     },
     {
-      "source": "315532b6",
-      "target": "Battlelogs Request & Preprocess"
+      "source": "398885d8",
+      "target": "58c0e5dc"
+    },
+    {
+      "source": "player_cohorts_classifier",
+      "target": "63afde62"
     },
     {
       "source": "6d5dae8c",
       "target": "04b70c18"
     },
     {
-      "source": "d8d3adcf",
-      "target": "04b70c18"
-    },
-    {
-      "source": "Event Activity Segmentation",
-      "target": "d38b765a"
-    },
-    {
-      "source": "a767f206",
-      "target": "Event Activity Segmentation"
-    },
-    {
       "source": "f603f0e3",
-      "target": "11dfbc11"
-    },
-    {
-      "source": "Event Activity Segmentation",
-      "target": "465a5e1b"
-    },
-    {
-      "source": "2ed8ea01",
-      "target": "cb5cd636"
+      "target": "93c7615e"
     },
     {
       "source": "e9d0e540",
       "target": "4a43ea27"
     },
     {
+      "source": "7f21d6c8",
+      "target": "da3beba1"
+    },
+    {
       "source": "f603f0e3",
-      "target": "259297bb"
-    },
-    {
-      "source": "Player Cohorts Clustering",
-      "target": "63afde62"
-    },
-    {
-      "source": "65b0c4ea",
-      "target": "b9d5d3ea"
-    },
-    {
-      "source": "d4e43cc1",
-      "target": "2ed8ea01"
+      "target": "11dfbc11"
     },
     {
       "source": "9cfdf3de",
-      "target": "Player Cohorts Clustering"
-    },
-    {
-      "source": "21b17b66",
-      "target": "e9d0e540"
-    },
-    {
-      "source": "1443b0ff",
-      "target": "6a07d090"
+      "target": "player_cohorts_classifier"
     },
     {
       "source": "a767f206",
       "target": "1443b0ff"
     },
     {
-      "source": "f9164448",
-      "target": "a0631f6f"
+      "source": "bee15f29",
+      "target": "metadata_request_preprocess"
     },
     {
-      "source": "434493c0",
-      "target": "398885d8"
+      "source": "player_cohorts_classifier",
+      "target": "93c7615e"
     },
     {
-      "source": "Player Cohorts Clustering",
-      "target": "259297bb"
+      "source": "d8d3adcf",
+      "target": "65b0c4ea"
     },
     {
-      "source": "Player Cohorts Clustering",
-      "target": "cb5cd636"
+      "source": "24e07799",
+      "target": "130f32f3"
     },
     {
-      "source": "Event Activity Segmentation",
-      "target": "6a07d090"
+      "source": "player_cohorts_classifier",
+      "target": "11dfbc11"
+    },
+    {
+      "source": "315532b6",
+      "target": "57685787"
+    },
+    {
+      "source": "5d38bbfe",
+      "target": "player_activity_clustering_merge"
+    },
+    {
+      "source": "4a43ea27",
+      "target": "1443b0ff"
+    },
+    {
+      "source": "130f32f3",
+      "target": "5d760be0"
+    },
+    {
+      "source": "7f21d6c8",
+      "target": "2ed8ea01"
     },
     {
       "source": "11e28478",
       "target": "da3beba1"
     },
     {
+      "source": "6d5dae8c",
+      "target": "Event Activity Segmentation"
+    },
+    {
+      "source": "metadata_request_preprocess",
+      "target": "5d760be0"
+    },
+    {
+      "source": "6d5dae8c",
+      "target": "31cdb89a"
+    },
+    {
+      "source": "Event Activity Segmentation",
+      "target": "d38b765a"
+    },
+    {
+      "source": "2ed8ea01",
+      "target": "5d38bbfe"
+    },
+    {
+      "source": "3dd4bf7a",
+      "target": "battlelogs_request_preprocess"
+    },
+    {
+      "source": "d3003e1e",
+      "target": "player_cohorts_classifier"
+    },
+    {
+      "source": "11e28478",
+      "target": "player_cohorts_classifier"
+    },
+    {
+      "source": "1443b0ff",
+      "target": "d38b765a"
+    },
+    {
+      "source": "f9164448",
+      "target": "a0631f6f"
+    },
+    {
+      "source": "a9dcccd5",
+      "target": "d4e43cc1"
+    },
+    {
       "source": "f603f0e3",
-      "target": "7f21d6c8"
+      "target": "259297bb"
     },
     {
-      "source": "5d38bbfe",
-      "target": "04b70c18"
-    },
-    {
-      "source": "31556d1d",
-      "target": "04b70c18"
-    },
-    {
-      "source": "Player Cohorts Clustering",
-      "target": "d6a850c2"
-    },
-    {
-      "source": "67056c38",
-      "target": "130f32f3"
+      "source": "d3003e1e",
+      "target": "a9dcccd5"
     },
     {
       "source": "da3beba1",
       "target": "d6a850c2"
     },
     {
-      "source": "Player Cohorts Clustering",
-      "target": "99263f3a"
+      "source": "2ed8ea01",
+      "target": "cb5cd636"
     },
     {
-      "source": "bcdb0038",
+      "source": "Event Activity Segmentation",
+      "target": "b9d5d3ea"
+    },
+    {
+      "source": "315532b6",
       "target": "24bf7874"
     },
     {
@@ -1313,44 +1197,160 @@
       "target": "f603f0e3"
     },
     {
+      "source": "5d38bbfe",
+      "target": "04b70c18"
+    },
+    {
+      "source": "5d760be0",
+      "target": "f9164448"
+    },
+    {
+      "source": "d8d3adcf",
+      "target": "Event Activity Segmentation"
+    },
+    {
+      "source": "player_cohorts_classifier",
+      "target": "259297bb"
+    },
+    {
+      "source": "d4e43cc1",
+      "target": "da3beba1"
+    },
+    {
+      "source": "67056c38",
+      "target": "130f32f3"
+    },
+    {
+      "source": "31556d1d",
+      "target": "player_activity_clustering_merge"
+    },
+    {
+      "source": "315532b6",
+      "target": "metadata_request_preprocess"
+    },
+    {
+      "source": "4a43ea27",
+      "target": "31cdb89a"
+    },
+    {
+      "source": "player_activity_clustering_merge",
+      "target": "58c0e5dc"
+    },
+    {
+      "source": "da3beba1",
+      "target": "9e9894b2"
+    },
+    {
+      "source": "Event Activity Segmentation",
+      "target": "465a5e1b"
+    },
+    {
+      "source": "bcdb0038",
+      "target": "24bf7874"
+    },
+    {
+      "source": "Event Activity Segmentation",
+      "target": "11fa65a3"
+    },
+    {
+      "source": "434493c0",
+      "target": "player_activity_clustering_merge"
+    },
+    {
+      "source": "player_cohorts_classifier",
+      "target": "d6a850c2"
+    },
+    {
       "source": "da3beba1",
       "target": "99263f3a"
     },
     {
-      "source": "d3003e1e",
-      "target": "Player Cohorts Clustering"
+      "source": "65b0c4ea",
+      "target": "b9d5d3ea"
+    },
+    {
+      "source": "57685787",
+      "target": "67056c38"
+    },
+    {
+      "source": "31556d1d",
+      "target": "65b0c4ea"
+    },
+    {
+      "source": "a0631f6f",
+      "target": "a9dcccd5"
+    },
+    {
+      "source": "f603f0e3",
+      "target": "7f21d6c8"
+    },
+    {
+      "source": "315532b6",
+      "target": "battlelogs_request_preprocess"
+    },
+    {
+      "source": "player_cohorts_classifier",
+      "target": "cb5cd636"
+    },
+    {
+      "source": "5d760be0",
+      "target": "player_cohorts_classifier"
+    },
+    {
+      "source": "bee15f29",
+      "target": "57685787"
+    },
+    {
+      "source": "a9dcccd5",
+      "target": "63afde62"
+    },
+    {
+      "source": "player_cohorts_classifier",
+      "target": "9e9894b2"
+    },
+    {
+      "source": "31556d1d",
+      "target": "04b70c18"
+    },
+    {
+      "source": "d4e43cc1",
+      "target": "2ed8ea01"
+    },
+    {
+      "source": "24e07799",
+      "target": "metadata_request_preprocess"
+    },
+    {
+      "source": "4a43ea27",
+      "target": "Event Activity Segmentation"
+    },
+    {
+      "source": "battlelogs_request_preprocess",
+      "target": "4a43ea27"
     },
     {
       "source": "da3beba1",
       "target": "77c5173f"
     },
     {
-      "source": "315532b6",
-      "target": "Metadata Request & Preprocess"
+      "source": "6d5dae8c",
+      "target": "player_activity_clustering_merge"
     },
     {
-      "source": "bee15f29",
-      "target": "Metadata Request & Preprocess"
+      "source": "player_cohorts_classifier",
+      "target": "99263f3a"
     },
     {
       "source": "bcdb0038",
-      "target": "Battlelogs Request & Preprocess"
+      "target": "battlelogs_request_preprocess"
     },
     {
-      "source": "Player Cohorts Clustering",
-      "target": "9e9894b2"
+      "source": "1443b0ff",
+      "target": "465a5e1b"
     },
     {
-      "source": "3dd4bf7a",
-      "target": "e9d0e540"
-    },
-    {
-      "source": "6d5dae8c",
-      "target": "Player Activity Clustering & Merge"
-    },
-    {
-      "source": "d8d3adcf",
-      "target": "Player Activity Clustering & Merge"
+      "source": "a767f206",
+      "target": "Event Activity Segmentation"
     }
   ],
   "layers": [
@@ -1397,12 +1397,92 @@
       "outputs": [],
       "children": [
         {
-          "id": "259297bb",
+          "id": "315532b6",
           "type": "data"
         },
         {
-          "id": "Metadata Request & Preprocess",
+          "id": "93c7615e",
+          "type": "data"
+        },
+        {
+          "id": "4a43ea27",
+          "type": "data"
+        },
+        {
+          "id": "d38b765a",
+          "type": "data"
+        },
+        {
+          "id": "31556d1d",
+          "type": "data"
+        },
+        {
+          "id": "battlelogs_request_preprocess",
           "type": "modularPipeline"
+        },
+        {
+          "id": "a0631f6f",
+          "type": "data"
+        },
+        {
+          "id": "player_cohorts_classifier",
+          "type": "modularPipeline"
+        },
+        {
+          "id": "7f21d6c8",
+          "type": "data"
+        },
+        {
+          "id": "24e07799",
+          "type": "parameters"
+        },
+        {
+          "id": "d8d3adcf",
+          "type": "parameters"
+        },
+        {
+          "id": "6a07d090",
+          "type": "data"
+        },
+        {
+          "id": "67056c38",
+          "type": "data"
+        },
+        {
+          "id": "cb5cd636",
+          "type": "data"
+        },
+        {
+          "id": "21b17b66",
+          "type": "data"
+        },
+        {
+          "id": "9cfdf3de",
+          "type": "parameters"
+        },
+        {
+          "id": "99263f3a",
+          "type": "data"
+        },
+        {
+          "id": "b9d5d3ea",
+          "type": "data"
+        },
+        {
+          "id": "d3003e1e",
+          "type": "parameters"
+        },
+        {
+          "id": "77c5173f",
+          "type": "data"
+        },
+        {
+          "id": "11e28478",
+          "type": "parameters"
+        },
+        {
+          "id": "11fa65a3",
+          "type": "data"
         },
         {
           "id": "58c0e5dc",
@@ -1413,15 +1493,31 @@
           "type": "data"
         },
         {
-          "id": "a0631f6f",
+          "id": "259297bb",
           "type": "data"
         },
         {
-          "id": "93c7615e",
+          "id": "6d5dae8c",
+          "type": "parameters"
+        },
+        {
+          "id": "bee15f29",
+          "type": "parameters"
+        },
+        {
+          "id": "52081192",
           "type": "data"
         },
         {
-          "id": "d4e43cc1",
+          "id": "5d760be0",
+          "type": "data"
+        },
+        {
+          "id": "metadata_request_preprocess",
+          "type": "modularPipeline"
+        },
+        {
+          "id": "63afde62",
           "type": "data"
         },
         {
@@ -1429,103 +1525,15 @@
           "type": "parameters"
         },
         {
-          "id": "77c5173f",
-          "type": "data"
-        },
-        {
-          "id": "bee15f29",
-          "type": "parameters"
-        },
-        {
-          "id": "99263f3a",
-          "type": "data"
-        },
-        {
-          "id": "21b17b66",
-          "type": "data"
-        },
-        {
-          "id": "bcdb0038",
-          "type": "parameters"
-        },
-        {
-          "id": "465a5e1b",
-          "type": "data"
-        },
-        {
-          "id": "9e9894b2",
-          "type": "data"
-        },
-        {
-          "id": "Player Cohorts Clustering",
+          "id": "player_activity_clustering_merge",
           "type": "modularPipeline"
-        },
-        {
-          "id": "11e28478",
-          "type": "parameters"
-        },
-        {
-          "id": "6a07d090",
-          "type": "data"
-        },
-        {
-          "id": "d3003e1e",
-          "type": "parameters"
-        },
-        {
-          "id": "6d5dae8c",
-          "type": "parameters"
-        },
-        {
-          "id": "cb5cd636",
-          "type": "data"
-        },
-        {
-          "id": "d8d3adcf",
-          "type": "parameters"
-        },
-        {
-          "id": "9cfdf3de",
-          "type": "parameters"
-        },
-        {
-          "id": "5d760be0",
-          "type": "data"
-        },
-        {
-          "id": "5d38bbfe",
-          "type": "data"
-        },
-        {
-          "id": "Battlelogs Request & Preprocess",
-          "type": "modularPipeline"
-        },
-        {
-          "id": "315532b6",
-          "type": "data"
-        },
-        {
-          "id": "3dd4bf7a",
-          "type": "parameters"
-        },
-        {
-          "id": "31556d1d",
-          "type": "data"
-        },
-        {
-          "id": "4a43ea27",
-          "type": "data"
-        },
-        {
-          "id": "67056c38",
-          "type": "data"
         },
         {
           "id": "d6a850c2",
           "type": "data"
         },
         {
-          "id": "63afde62",
+          "id": "465a5e1b",
           "type": "data"
         },
         {
@@ -1533,46 +1541,69 @@
           "type": "parameters"
         },
         {
-          "id": "Player Activity Clustering & Merge",
-          "type": "modularPipeline"
-        },
-        {
           "id": "Event Activity Segmentation",
           "type": "modularPipeline"
         },
         {
-          "id": "d38b765a",
-          "type": "data"
-        },
-        {
-          "id": "52081192",
-          "type": "data"
-        },
-        {
-          "id": "24e07799",
+          "id": "3dd4bf7a",
           "type": "parameters"
         },
         {
-          "id": "b9d5d3ea",
+          "id": "bcdb0038",
+          "type": "parameters"
+        },
+        {
+          "id": "9e9894b2",
           "type": "data"
         },
         {
-          "id": "7f21d6c8",
+          "id": "d4e43cc1",
           "type": "data"
         },
         {
-          "id": "11fa65a3",
+          "id": "5d38bbfe",
           "type": "data"
         }
       ]
     },
-    "Battlelogs Request & Preprocess": {
-      "id": "Battlelogs Request & Preprocess",
-      "name": "Battlelogs Request & Preprocess",
+    "Event Activity Segmentation": {
+      "id": "Event Activity Segmentation",
+      "name": "Event Activity Segmentation",
       "inputs": [
+        "a767f206",
+        "6d5dae8c",
+        "d8d3adcf",
+        "4a43ea27"
+      ],
+      "outputs": [
+        "6a07d090",
+        "11fa65a3",
+        "b9d5d3ea",
+        "d38b765a",
+        "465a5e1b"
+      ],
+      "children": [
+        {
+          "id": "31cdb89a",
+          "type": "task"
+        },
+        {
+          "id": "1443b0ff",
+          "type": "task"
+        },
+        {
+          "id": "65b0c4ea",
+          "type": "task"
+        }
+      ]
+    },
+    "battlelogs_request_preprocess": {
+      "id": "battlelogs_request_preprocess",
+      "name": "Battlelogs Request Preprocess",
+      "inputs": [
+        "bcdb0038",
         "315532b6",
-        "3dd4bf7a",
-        "bcdb0038"
+        "3dd4bf7a"
       ],
       "outputs": [
         "4a43ea27"
@@ -1588,68 +1619,37 @@
         }
       ]
     },
-    "Event Activity Segmentation": {
-      "id": "Event Activity Segmentation",
-      "name": "Event Activity Segmentation",
+    "metadata_request_preprocess": {
+      "id": "metadata_request_preprocess",
+      "name": "Metadata Request Preprocess",
       "inputs": [
-        "4a43ea27",
-        "d8d3adcf",
-        "6d5dae8c",
-        "a767f206"
-      ],
-      "outputs": [
-        "6a07d090",
-        "465a5e1b",
-        "d38b765a",
-        "b9d5d3ea",
-        "11fa65a3"
-      ],
-      "children": [
-        {
-          "id": "65b0c4ea",
-          "type": "task"
-        },
-        {
-          "id": "31cdb89a",
-          "type": "task"
-        },
-        {
-          "id": "1443b0ff",
-          "type": "task"
-        }
-      ]
-    },
-    "Metadata Request & Preprocess": {
-      "id": "Metadata Request & Preprocess",
-      "name": "Metadata Request & Preprocess",
-      "inputs": [
-        "315532b6",
         "bee15f29",
-        "24e07799"
+        "24e07799",
+        "315532b6"
       ],
       "outputs": [
         "5d760be0"
       ],
       "children": [
         {
-          "id": "130f32f3",
+          "id": "57685787",
           "type": "task"
         },
         {
-          "id": "57685787",
+          "id": "130f32f3",
           "type": "task"
         }
       ]
     },
-    "Player Activity Clustering & Merge": {
-      "id": "Player Activity Clustering & Merge",
-      "name": "Player Activity Clustering & Merge",
+    "player_activity_clustering_merge": {
+      "id": "player_activity_clustering_merge",
+      "name": "Player Activity Clustering Merge",
       "inputs": [
-        "434493c0",
-        "5d38bbfe",
+        "31556d1d",
         "6d5dae8c",
         "d8d3adcf",
-        "31556d1d"
+        "434493c0",
+        "5d38bbfe"
       ],
       "outputs": [
         "58c0e5dc"
@@ -1665,32 +1665,28 @@
         }
       ]
     },
-    "Player Cohorts Clustering": {
-      "id": "Player Cohorts Clustering",
-      "name": "Player Cohorts Clustering",
+    "player_cohorts_classifier": {
+      "id": "player_cohorts_classifier",
+      "name": "Player Cohorts Classifier",
       "inputs": [
+        "d3003e1e",
         "9cfdf3de",
         "5d760be0",
-        "11e28478",
-        "d3003e1e"
+        "11e28478"
       ],
       "outputs": [
-        "11dfbc11",
-        "d6a850c2",
-        "9e9894b2",
-        "63afde62",
-        "5d38bbfe",
         "99263f3a",
+        "11dfbc11",
+        "9e9894b2",
         "77c5173f",
-        "93c7615e",
+        "cb5cd636",
         "259297bb",
-        "cb5cd636"
+        "63afde62",
+        "d6a850c2",
+        "5d38bbfe",
+        "93c7615e"
       ],
       "children": [
-        {
-          "id": "da3beba1",
-          "type": "task"
-        },
         {
           "id": "a9dcccd5",
           "type": "task"
@@ -1700,11 +1696,15 @@
           "type": "task"
         },
         {
+          "id": "f9164448",
+          "type": "task"
+        },
+        {
           "id": "f603f0e3",
           "type": "task"
         },
         {
-          "id": "f9164448",
+          "id": "da3beba1",
           "type": "task"
         }
       ]

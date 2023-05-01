@@ -60,25 +60,40 @@ def player_cluster_activity_concatenator(
         ["cluster_labels", "first_log"]
     ).agg(*[f.sum(col).alias(f"{col}") for col in ret_columns])
 
-    # Get analytical ratios and days available from parameters, and validate that all
-    # day labels are present
+    # Get analytical ratios, normal ratios and days available from parameters,
+    # and validate that all day labels are present
     analytical_ratios = [
         literal_eval(ratio) for ratio in params_ratio_register.get("analytical_ratios")
     ]
+    ratios = [literal_eval(ratio) for ratio in params_ratio_register["ratios"]]
     days_available = params_activity_transformer.get("retention_days")
 
-    # Validate day labels are present in parameters
-    _ratio_days_availabilty(analytical_ratios, days_available)
-
-    # Calculate retention ratios for each analytical ratio (inputs)
-    for ratio in analytical_ratios:
+    # Convert retention metrics to percentages
+    for ratio in ratios:
         num, den = ratio
-        ratio_name = f"D{num}/D{den}"
+        ratio_name = f"D{num}R"
         ret_num = f"D{num}R"
         ret_den = f"D{den}R"
         player_clustered_activity = player_clustered_activity.withColumn(
             ratio_name, ratio_agg(f.col(ret_num), f.col(ret_den))
         )
+
+    # Obtain analytical ratios if them were defined in the parameters (ratio register)
+    if params_ratio_register["analytical_ratios"] and isinstance(
+        params_ratio_register["analytical_ratios"], list
+    ):
+        # Validate day labels are present in parameters
+        _ratio_days_availabilty(analytical_ratios, days_available)
+
+        # Calculate retention ratios for each analytical ratio (inputs)
+        for ratio in analytical_ratios:
+            num, den = ratio
+            ratio_name = f"D{num}/D{den}"
+            ret_num = f"D{num}R"
+            ret_den = f"D{den}R"
+            player_clustered_activity = player_clustered_activity.withColumn(
+                ratio_name, ratio_agg(f.col(ret_num), f.col(ret_den))
+            )
 
     # Reorder dataframe, reformat the cluster labels and send to data to driver
     player_clustered_activity = (
@@ -87,6 +102,9 @@ def player_cluster_activity_concatenator(
         .withColumn("cluster_labels", f.col("cluster_labels").cast("integer"))
         .toPandas()
     )
+
+    # Present all installations as 100% retention
+    player_clustered_activity["D0R"] = float(1.0)
 
     return player_clustered_activity
 
@@ -161,16 +179,23 @@ def user_retention_plot_gen(
 
     # Create a Plotly figure
     fig = go.Figure()
+    traces_labels = []
     # Create a barchart trace for each retention feature
-    for i in retention_columns:
-        fig.add_trace(
-            go.Bar(
-                x=player_clusters_grouped["first_log"],
-                y=player_clusters_grouped[i],
-                name=i,
-                visible=True,
+    for cluster_label in player_clusters_grouped["cluster_labels"].unique():
+        grouped_by_cluster = player_clusters_grouped[
+            player_clusters_grouped["cluster_labels"] == cluster_label
+        ]
+        for i in retention_columns:
+            fig.add_trace(
+                go.Bar(
+                    x=grouped_by_cluster["first_log"],
+                    y=grouped_by_cluster[i],
+                    name=f"{i}",
+                    visible=False,
+                )
             )
-        )
+            # Append label to the trace
+            traces_labels.append(cluster_label)
 
     # Get the plot dimensions from the 'plot_dimensions' parameter
     plot_dimensions = parameters.get("plot_dimensions")
@@ -185,19 +210,28 @@ def user_retention_plot_gen(
         height=plot_dimensions.get("height"),
     )
 
+    # Define default trace to show
+    cluster_labels = player_clusters_grouped["cluster_labels"].unique()
+    default_label_traces = [
+        True if i == cluster_labels[0] else False for i in traces_labels
+    ]
+
     # Define filter options for the dropdown menu
     filter_options = [
         {
-            "label": "All player clusters",
+            "label": "Select player clusters",
             "method": "update",
-            "args": [{"visible": True}],
+            "args": [{"visible": default_label_traces}],
         }
     ]
-    for cluster in player_clusters_grouped["cluster_labels"].unique():
+
+    # Subset active labels to define button actions
+    for cluster in cluster_labels:
+        active_traces = [True if i == cluster else False for i in traces_labels]
         option = {
             "label": f"Cluster {cluster}",
             "method": "update",
-            "args": [{"visible": player_clusters_grouped["cluster_labels"] == cluster}],
+            "args": [{"visible": active_traces}],
         }
         filter_options.append(option)
 
@@ -209,12 +243,23 @@ def user_retention_plot_gen(
                 direction="left",
                 pad={"r": 10, "t": 10},
                 showactive=True,
+                active=0,
                 x=1.0,
                 xanchor="left",
                 y=1.18,
                 yanchor="top",
             )
         ]
+    )
+
+    # Set the layout for the barchart
+    fig.update_layout(
+        title=f"User Retention by Date, for last {days} days",
+        xaxis_title="Date",
+        yaxis_title="Retention",
+        barmode="group",
+        width=plot_dimensions.get("width"),
+        height=plot_dimensions.get("height"),
     )
 
     return fig
