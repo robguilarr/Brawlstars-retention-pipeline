@@ -7,7 +7,7 @@ from .nodes import battlelogs_request, battlelogs_filter
 
 
 def create_pipeline(**kwargs) -> Pipeline:
-    namespace = "Battlelogs Request & Preprocess"
+    namespace = "battlelogs_request_preprocess"
     battlelogs_request_preprocess = pipeline(
         [
             node(

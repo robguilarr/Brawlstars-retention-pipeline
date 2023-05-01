@@ -14,7 +14,7 @@ from .nodes import (
 
 
 def create_pipeline(**kwargs) -> Pipeline:
-    namespace = "Player Cohorts Clustering"
+    namespace = "player_cohorts_classifier"
     player_cohorts_classifier = pipeline(
         [
             node(
