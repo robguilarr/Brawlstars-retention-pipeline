@@ -8,6 +8,7 @@ from .nodes import player_cluster_activity_concatenator, user_retention_plot_gen
 
 
 def create_pipeline(**kwargs) -> Pipeline:
+    namespace = "Player Activity Clustering & Merge"
     player_cluster_activity_merge = pipeline(
         [
             node(
@@ -20,6 +21,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 ],
                 outputs="player_clustered_activity@pandas",
                 name="player_cluster_activity_concatenator_node",
+                namespace=namespace,
             ),
             node(
                 func=user_retention_plot_gen,
@@ -29,6 +31,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 ],
                 outputs="user_retention_plot",
                 name="user_retention_plot_gen_node",
+                namespace=namespace,
             ),
         ]
     )

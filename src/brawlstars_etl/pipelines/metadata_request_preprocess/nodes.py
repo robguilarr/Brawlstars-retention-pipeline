@@ -41,7 +41,7 @@ def players_info_request(
         assert API_KEY is not None
     except AssertionError:
         log.info(
-         "No API key has been defined. Request one at https://developer.brawlstars.com/"
+            "No API key has been defined. Request one at https://developer.brawlstars.com/"
         )
 
     # Create a client object using the Brawlstats API wrapper and prevent rate limiting
@@ -180,7 +180,7 @@ def metadata_preparation(
         "club_tag",
         "club_name",
         "bestTimeAsBigBrawler",
-        'highestPowerPlayPoints',
+        "highestPowerPlayPoints",
     )
 
     return players_metadata_prepared.toPandas()

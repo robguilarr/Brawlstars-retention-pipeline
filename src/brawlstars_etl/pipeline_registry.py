@@ -30,5 +30,5 @@ def register_pipelines() -> Dict[str, Pipeline]:
         "events_activity_segmentation": eas,
         "metadata_request_preprocess": mrp,
         "player_cohorts_classifier": pcc,
-        "player_cluster_activity_merge": pca
+        "player_cluster_activity_merge": pca,
     }
