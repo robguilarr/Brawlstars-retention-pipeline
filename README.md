@@ -1,11 +1,17 @@
-# 🏜️ Brawlstars Retention Pipeline
+# Player Retention Monitoring and Cohorts Building in Brawlstars using Non-Supervised Models
+
+<p align="center">
+ <img width="15%" height="15%" src="https://raw.githubusercontent.com/robguilarr/Brawlstars-retention-pipeline/main/notebooks/readme_logo.png">
+</p>
 
 ## Overview
 
-Kedro Pipeline to extract user retention metrics from Brawlstars API and load it to 
-GCP, which was generated using `Kedro 0.18.4` and `Apache Spark 3.2.2`.
+End-to-end pipeline to extract logs from Brawlstars API, using a KMeans 
+model for player classification and cohorts creation, to produce parametrized 
+bounded retention metrics loading them to a Google Cloud Bucket.
 
-Take a look at the [Kedro documentation](https://kedro.readthedocs.io) to get started.
+This project was generated using `Kedro 0.18.4` and `Apache Spark 3.2.2`. Take a 
+look at the [Kedro documentation](https://kedro.readthedocs.io) to get started.
 
 ## Rules and guidelines
 
