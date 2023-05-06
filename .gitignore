@@ -20,8 +20,8 @@ logs/**
 # also keep all .gitkeep files
 !.gitkeep
 
-# also keep the example dataset
-!data/01_raw/iris.csv
+# also keep the example files in
+!data/06_viz_data/
 
 
 ##########################

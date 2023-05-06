@@ -1,4 +1,4 @@
-# Pipeline events_activity_segmentation
+# Pipeline - Events Activity Segmentation
 
 > *Note:* This is a `README.md` boilerplate generated using `Kedro 0.18.4`.
 
