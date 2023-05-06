@@ -1,4 +1,4 @@
-# Pipeline battlelogs_request_preprocess
+# Pipeline - Battlelogs Request Preprocess
 
 > *Note:* This is a `README.md` boilerplate generated using `Kedro 0.18.4`.
 
