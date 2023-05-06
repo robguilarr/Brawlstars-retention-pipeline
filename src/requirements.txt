@@ -5,7 +5,7 @@ jupyterlab_server>=2.11.1, <2.16.0
 jupyterlab~=3.0
 kedro~=0.18.4
 kedro-telemetry~=0.2.0
-kedro-datasets[spark.SparkDataSet, pandas.ParquetDataSet]~=1.0.1
+kedro-datasets[spark.SparkDataSet,pandas.ParquetDataSet,plotly.PlotlyDataSet,plotly.JSONDataSet]==1.0.1
 nbstripout~=0.4
 jinja2>=2.11, <3.1
 numpy==1.24.1
@@ -26,5 +26,4 @@ datetime==5.0
 matplotlib>=3.7.1
 plotly==5.14.0
 scikit-learn==1.2.2
-kedro-datasets[plotly.PlotlyDataSet, plotly.JSONDataSet]~=1.1
 gcsfs==2023.4.0
