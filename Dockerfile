@@ -57,6 +57,6 @@ RUN chown -R kedro:${KEDRO_GID} /home/kedro
 USER kedro
 RUN chmod -R a+w /home/kedro
 
-EXPOSE 8080
+EXPOSE $PORT
 
-CMD ["kedro", "viz"]
+CMD ["kedro", "viz", "--port=4141"]
