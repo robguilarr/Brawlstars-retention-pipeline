@@ -1,14 +1,12 @@
 ARG BASE_IMAGE=python:3.6-buster
 FROM $BASE_IMAGE
 
-# install JDK 8
-RUN apt-get update && apt-get install -y openjdk-8-jdk && rm -rf /var/lib/apt/lists/*
-ENV JAVA_HOME "/usr/lib/jvm/java-8-openjdk-amd64"
-
-# install Hadoop 3.3.1
-ARG HADOOP_VERSION="3.3.1"
+# install Hadoop
+RUN apt-get update && apt-get install -y default-jdk-headless && rm -rf /var/lib/apt/lists/*
+ENV JAVA_HOME "/usr/lib/jvm/default-java"
+ARG HADOOP_VERSION="3.1.1"
 ENV HADOOP_HOME "/opt/hadoop"
-RUN curl https://dlcdn.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz \
+RUN curl https://archive.apache.org/dist/hadoop/core/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz \
     | tar xz -C /opt && mv /opt/hadoop-${HADOOP_VERSION} ${HADOOP_HOME}
 ENV HADOOP_COMMON_HOME "${HADOOP_HOME}"
 ENV HADOOP_CLASSPATH "${HADOOP_HOME}/share/hadoop/tools/lib/*"
@@ -18,12 +16,12 @@ ENV HADOOP_OPTS "$HADOOP_OPTS -Djava.library.path=${HADOOP_HOME}/lib"
 ENV HADOOP_COMMON_LIB_NATIVE_DIR "${HADOOP_HOME}/lib/native"
 ENV YARN_CONF_DIR "${HADOOP_HOME}/etc/hadoop"
 
-# install Spark 3.3.1
+# install Spark
 ARG SPARK_VERSION="3.3.1"
 ARG PY4J_VERSION="0.10.9.5"
 ENV SPARK_HOME "/opt/spark"
-RUN curl https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz \
-    | tar xz -C /opt && mv /opt/spark-${SPARK_VERSION}-bin-hadoop3 ${SPARK_HOME}
+RUN curl https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz \
+    | tar xz -C /opt && mv /opt/spark-${SPARK_VERSION}-bin-without-hadoop ${SPARK_HOME}
 ENV PATH "$PATH:${SPARK_HOME}/bin"
 ENV LD_LIBRARY_PATH "${HADOOP_HOME}/lib/native"
 ENV SPARK_DIST_CLASSPATH "${HADOOP_HOME}/etc/hadoop\
@@ -46,6 +44,12 @@ ENV SPARK_OPTS "--driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M 
 COPY src/requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt && rm -f /tmp/requirements.txt
 
+# add kedro user
+ARG KEDRO_UID=999
+ARG KEDRO_GID=0
+RUN groupadd -f -g ${KEDRO_GID} kedro_group && \
+useradd -d /home/kedro -s /bin/bash -g ${KEDRO_GID} -u ${KEDRO_UID} kedro
+
 # copy the whole project except what is in .dockerignore
 WORKDIR /home/kedro
 COPY . .
@@ -55,4 +59,4 @@ RUN chmod -R a+w /home/kedro
 
 EXPOSE 8080
 
-CMD ["kedro", "viz", "--env=base", "--host=0.0.0.0", "--port=8080"]
+CMD ["kedro", "viz"]
