@@ -56,8 +56,8 @@ def run_server(
     autoreload: bool = False,
     extra_params: Optional[Dict[str, Any]] = None,
 ):  # pylint: disable=redefined-outer-name, too-many-locals
-    """Run a uvicorn server with a FastAPI app that either launches API response data from a file
-    or from reading data from a real Kedro project.
+    """Run an uvicorn server with a FastAPI app that either launches API response data
+    from a file or from reading data from a real Kedro project.
 
     Args:
         host: the host to launch the webserver
@@ -109,15 +109,7 @@ if __name__ == "__main__":  # pragma: no cover
 
     from kedro.framework.startup import bootstrap_project
 
-    #parser = argparse.ArgumentParser(description="Launch a development viz server")
-    #parser.add_argument("project_path", help="Path to a Kedro project")
-    #parser.add_argument(
-    #    "--host", help="The host of the development server", default=DEFAULT_HOST
-    #)
-    #parser.add_argument(
-    #    "--port", help="The port of the development server", default=DEV_PORT
-    #)
-    #args = parser.parse_args()
+    port = int(os.environ.get("PORT", 4141))
 
     project_path = os.getcwd()
     bootstrap_project(project_path)
@@ -126,7 +118,7 @@ if __name__ == "__main__":  # pragma: no cover
         run_server,
         kwargs={
             "host": "0.0.0.0",
-            "port": "8080",
+            "port": port,
             "project_path": str(project_path),
         },
     )
