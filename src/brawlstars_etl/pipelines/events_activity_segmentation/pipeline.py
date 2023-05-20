@@ -8,7 +8,7 @@ from .nodes import battlelogs_deconstructor, activity_transformer, ratio_registe
 
 
 def create_pipeline(**kwargs) -> Pipeline:
-    namespace = "Event Activity Segmentation"
+    namespace = "events_activity_segmentation"
     events_activity_segmentation = pipeline(
         [
             node(
