@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=python:3.9-buster
+ARG BASE_IMAGE=python:3.9-slim
 FROM $BASE_IMAGE
 
 # install Hadoop
