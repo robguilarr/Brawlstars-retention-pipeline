@@ -2,7 +2,7 @@ ARG BASE_IMAGE=python:3.9-slim-buster
 FROM $BASE_IMAGE
 
 # install Hadoop
-RUN apt-get update && apt-get install -y default-jdk-headless && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl default-jdk-headless && rm -rf /var/lib/apt/lists/*
 ENV JAVA_HOME "/usr/lib/jvm/default-java"
 ARG HADOOP_VERSION="3.1.1"
 ENV HADOOP_HOME "/opt/hadoop"
